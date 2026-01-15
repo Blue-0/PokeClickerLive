@@ -51,6 +51,7 @@ try {
     $router->post('/api/auth/register', \App\Controllers\Api\AuthController::class, 'register');
     $router->post('/api/auth/login', \App\Controllers\Api\AuthController::class, 'login');
     $router->get('/api/auth/me', \App\Controllers\Api\AuthController::class, 'me');
+    $router->post('/api/user/sync', \App\Controllers\Api\SyncController::class, 'sync');
 
     // Pokemon API routes
     $router->get('/api/pokemon', \App\Controllers\Api\PokemonApiController::class, 'index');

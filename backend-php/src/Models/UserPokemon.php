@@ -8,7 +8,7 @@ namespace App\Models;
 class UserPokemon extends Model
 {
     protected static string $table = 'user_pokemon';
-    protected static string $primaryKey = 'id';
+    protected static array $compositeKey = ['user_id', 'pokemon_id'];
 
     /**
      * Get all Pokémon owned by a user
@@ -57,9 +57,23 @@ class UserPokemon extends Model
     /**
      * Level up a user's Pokémon
      */
-    public static function addExperience(int $entryId, int $xp): ?array
+    /**
+     * Find a user pokemon entry by composite key
+     */
+    public static function findEntry(int|string $userId, int $pokemonId): ?array
     {
-        $entry = self::find($entryId);
+        $instance = new static();
+        $result = $instance->db->from(
+            static::$table,
+            '*',
+            ['user_id' => 'eq.' . $userId, 'pokemon_id' => 'eq.' . $pokemonId]
+        );
+        return $result['data'][0] ?? null;
+    }
+
+    public static function addExperience(int|string $userId, int $pokemonId, int $xp): ?array
+    {
+        $entry = self::findEntry($userId, $pokemonId);
         if (!$entry) {
             return null;
         }
@@ -75,10 +89,14 @@ class UserPokemon extends Model
             $xpForNextLevel = $newLevel * 100;
         }
 
-        return self::update($entryId, [
-            'level' => $newLevel,
-            'experience' => $newXp
-        ], true);
+        return self::updateComposite(
+            ['user_id' => $entry['user_id'], 'pokemon_id' => $entry['pokemon_id']],
+            [
+                'level' => $newLevel,
+                'experience' => $newXp
+            ],
+            true
+        );
     }
 
     /**

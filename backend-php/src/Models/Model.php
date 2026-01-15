@@ -138,5 +138,33 @@ abstract class Model
         );
 
         return !isset($result['error']) && $result['code'] < 400;
+        return !isset($result['error']) && $result['code'] < 400;
+    }
+
+    /**
+     * Update a record by Composite Key
+     */
+    public static function updateComposite(array $match, array $data, bool $useServiceKey = false): ?array
+    {
+        $instance = new static();
+
+        // Convert match array to Supabase query format
+        $query = [];
+        foreach ($match as $key => $value) {
+            $query[$key] = 'eq.' . $value;
+        }
+
+        $result = $instance->db->update(
+            static::$table,
+            $data,
+            $query,
+            $useServiceKey
+        );
+
+        if (isset($result['error']) || $result['code'] >= 400) {
+            return null;
+        }
+
+        return $result['data'][0] ?? null;
     }
 }

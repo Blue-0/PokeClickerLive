@@ -6,6 +6,7 @@ use App\Models\Pokemon;
 use App\Models\User;
 use App\Models\UserPokemon;
 use App\Models\TransactionLog;
+use App\Utils\JWT;
 
 /**
  * Pokemon API Controller
@@ -56,19 +57,26 @@ class PokemonApiController extends Controller
     /**
      * POST /api/pokemon/catch
      * Catch/buy a Pokémon for the authenticated user
-     * Body: { "pokemon_id": int, "user_id": int, "latitude"?: float, "longitude"?: float }
+     * Body: { "pokemon_id": int, "latitude"?: float, "longitude"?: float }
      */
     public function catch(): void
     {
+        // 1. Auth Check
+        $payload = JWT::validateFromHeader();
+        if (!$payload) {
+            $this->error('Unauthorized', 401);
+            return;
+        }
+        $userId = $payload['user_id'];
+
         $input = $this->getJsonInput();
 
-        if (!$input || !isset($input['pokemon_id']) || !isset($input['user_id'])) {
-            $this->error('pokemon_id and user_id are required', 400);
+        if (!$input || !isset($input['pokemon_id'])) {
+            $this->error('pokemon_id is required', 400);
             return;
         }
 
         $pokemonId = (int) $input['pokemon_id'];
-        $userId = $input['user_id'];
         $lat = $input['latitude'] ?? null;
         $lng = $input['longitude'] ?? null;
 
@@ -88,8 +96,8 @@ class PokemonApiController extends Controller
 
         // Check balance
         $price = $pokemon['price'];
-        if (($user['balance'] ?? 0) < $price) {
-            $this->error('Insufficient balance. Need ₽' . $price, 400);
+        if (($user['pokedollars'] ?? 0) < $price) {
+            $this->error('Insufficient balance. Need ₽' . $price, 402);
             return;
         }
 
@@ -106,7 +114,7 @@ class PokemonApiController extends Controller
             'message' => 'Caught ' . $pokemon['name'] . '!',
             'pokemon' => $pokemon,
             'entry' => $entry,
-            'new_balance' => ($user['balance'] ?? 0) - $price
+            'new_balance' => ($user['pokedollars'] ?? 0) - $price
         ]);
     }
 
