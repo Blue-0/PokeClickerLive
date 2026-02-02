@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:pokeclickerlive/src/features/pokemon/application/pokemon_provider.dart';
+import 'package:pokeclickerlive/src/features/world/application/zone_controller.dart';
 import '../domain/clicker_state.dart';
 
 part 'clicker_controller.g.dart';
@@ -26,7 +27,15 @@ class ClickerController extends _$ClickerController {
     state = state.copyWith(isLoading: true);
 
     final repo = ref.read(pokemonRepositoryProvider);
-    final result = await repo.getRandomSinnohPokemon();
+
+    // Get Pokémon ID from current zone (AC-6 integration)
+    final zoneController = ref.read(zoneControllerProvider.notifier);
+    final zonePokemonId = zoneController.getRandomPokemonIdFromCurrentZone();
+
+    // If zone has specific Pokémon, use those; otherwise fall back to random Sinnoh
+    final result = zonePokemonId != null
+        ? await repo.getPokemon(zonePokemonId)
+        : await repo.getRandomSinnohPokemon();
 
     result.fold(
       (failure) {

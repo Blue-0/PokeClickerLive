@@ -42,7 +42,7 @@ story_location: _bmad-output/implementation-artifacts
 development_status:
   epic-1: in-progress
   1-1-click-damage-currency: done
-  1-2-currency-balance-ui: backlog
+  1-2-currency-balance-ui: done
   1-3-purchase-click-upgrade: done
   1-4-flutter-project-setup: done
   epic-1-retrospective: optional
@@ -50,13 +50,13 @@ development_status:
   epic-2: in-progress
   2-1-fetch-pokemon-data: done
   2-2-display-pokemon-sprite: done
-  2-3-cache-sprites-locally: backlog
+  2-3-cache-sprites-locally: done
   epic-2-retrospective: optional
 
-  epic-3: backlog
-  3-1-switch-zones-map: backlog
-  3-2-encounter-pokemon-by-route: backlog
-  3-3-unlock-route-logic: backlog
+  epic-3: in-progress
+  3-1-switch-zones-map: done
+  3-2-encounter-pokemon-by-route: review
+  3-3-unlock-route-logic: review
   epic-3-retrospective: optional
 
   epic-4: backlog

@@ -41,27 +41,27 @@ class Supabase
             'Prefer: return=representation'
         ];
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Disable for self-hosted
+        $ch = \curl_init();
+        \curl_setopt($ch, CURLOPT_URL, $url);
+        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        \curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Disable for self-hosted
 
         switch (strtoupper($method)) {
             case 'POST':
-                curl_setopt($ch, CURLOPT_POST, true);
+                \curl_setopt($ch, CURLOPT_POST, true);
                 if ($data) {
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+                    \curl_setopt($ch, CURLOPT_POSTFIELDS, \json_encode($data));
                 }
                 break;
             case 'PATCH':
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
+                \curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
                 if ($data) {
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+                    \curl_setopt($ch, CURLOPT_POSTFIELDS, \json_encode($data));
                 }
                 break;
             case 'DELETE':
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+                \curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
                 break;
             case 'GET':
             default:
@@ -69,17 +69,17 @@ class Supabase
                 break;
         }
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
+        $response = \curl_exec($ch);
+        $httpCode = \curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = \curl_error($ch);
+        \curl_close($ch);
 
         if ($error) {
             return ['error' => $error, 'code' => 0];
         }
 
         return [
-            'data' => json_decode($response, true),
+            'data' => \json_decode($response, true),
             'code' => $httpCode
         ];
     }
@@ -149,20 +149,20 @@ class Supabase
      */
     public function testConnection()
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, rtrim($this->url, '/') . '/rest/v1/');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        $ch = \curl_init();
+        \curl_setopt($ch, CURLOPT_URL, rtrim($this->url, '/') . '/rest/v1/');
+        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        \curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'apikey: ' . $this->key,
             'Authorization: Bearer ' . $this->key
         ]);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        \curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
+        $response = \curl_exec($ch);
+        $httpCode = \curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = \curl_error($ch);
+        \curl_close($ch);
 
         if ($error) {
             return ['success' => false, 'error' => $error];
@@ -171,7 +171,7 @@ class Supabase
         return [
             'success' => $httpCode >= 200 && $httpCode < 400,
             'code' => $httpCode,
-            'response' => json_decode($response, true)
+            'response' => \json_decode($response, true)
         ];
     }
 }
