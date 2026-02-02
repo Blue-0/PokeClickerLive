@@ -56,7 +56,7 @@ development_status:
   epic-3: in-progress
   3-1-switch-zones-map: done
   3-2-encounter-pokemon-by-route: review
-  3-3-unlock-route-logic: review
+  3-3-unlock-route-logic: done
   epic-3-retrospective: optional
 
   epic-4: backlog

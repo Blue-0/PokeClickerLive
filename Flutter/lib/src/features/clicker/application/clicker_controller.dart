@@ -78,6 +78,9 @@ class ClickerController extends _$ClickerController {
     final pokemon = state.currentPokemon;
     final reward = pokemon != null ? (pokemon.attack ~/ 10) + 5 : 5;
 
+    // Record kill for zone progression
+    ref.read(zoneControllerProvider.notifier).recordKill();
+
     state = state.copyWith(
       currency: state.currency + reward,
       level: state.level + 1,

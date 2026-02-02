@@ -1,6 +1,6 @@
 # Story 3.3: Unlock Route Logic
 
-Status: review
+Status: done
 
 ## Story
 
@@ -97,6 +97,7 @@ Antigravity (Vertex AI / Gemini 2.0 Flash)
 - ✅ **Progress UI:** Added a "Kills: X / Y" indicator on the combat screen to guide players toward the next unlock.
 - ✅ **Real-time Map:** Verified that the world map updates immediately as kills are recorded.
 - ✅ **Comprehensive Testing:** Added 6 new tests covering logic fix, notification state (including multi-unlock), and UI progress display.
+- ✅ **Fixed Kill Logic:** Moved `recordKill` from `ClickerScreen` (on Tap) to `ClickerController` (on Defeat) to ensure kills only count when HP reaches 0.
 
 ### File List
 

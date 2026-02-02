@@ -72,9 +72,6 @@ class _ClickerScreenState extends ConsumerState<ClickerScreen>
   void _handleTap(TapUpDetails details) {
     ref.read(clickerControllerProvider.notifier).click();
 
-    // Record kill for zone progression
-    ref.read(zoneControllerProvider.notifier).recordKill();
-
     // Add randomness to position
     final randomOffset = Offset(
       (_random.nextDouble() - 0.5) * 40,
