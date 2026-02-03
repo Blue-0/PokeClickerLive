@@ -26,6 +26,12 @@ abstract class Zone with _$Zone {
 
     /// IDs of Pokémon that can spawn in this zone
     @Default([]) List<int> pokemonIds,
+
+    /// ID of the Boss Pokémon for this zone (null if no boss)
+    int? bossPokemonId,
+
+    /// Duration of the boss timer in seconds (null if using default)
+    int? bossTimerSeconds,
   }) = _Zone;
 
   factory Zone.fromJson(Map<String, dynamic> json) => _$ZoneFromJson(json);

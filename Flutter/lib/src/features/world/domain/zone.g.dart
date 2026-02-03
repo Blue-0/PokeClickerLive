@@ -21,6 +21,8 @@ _Zone _$ZoneFromJson(Map<String, dynamic> json) => _Zone(
           ?.map((e) => (e as num).toInt())
           .toList() ??
       const [],
+  bossPokemonId: (json['bossPokemonId'] as num?)?.toInt(),
+  bossTimerSeconds: (json['bossTimerSeconds'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$ZoneToJson(_Zone instance) => <String, dynamic>{
@@ -30,6 +32,8 @@ Map<String, dynamic> _$ZoneToJson(_Zone instance) => <String, dynamic>{
   'isUnlocked': instance.isUnlocked,
   'unlockCondition': instance.unlockCondition,
   'pokemonIds': instance.pokemonIds,
+  'bossPokemonId': instance.bossPokemonId,
+  'bossTimerSeconds': instance.bossTimerSeconds,
 };
 
 const _$ZoneTypeEnumMap = {

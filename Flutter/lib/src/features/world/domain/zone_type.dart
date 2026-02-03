@@ -8,4 +8,7 @@ enum ZoneType {
 
   /// Dungeon with special mechanics (future feature)
   dungeon,
+
+  /// Dedicated boss encounter zone
+  boss,
 }

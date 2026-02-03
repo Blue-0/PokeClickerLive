@@ -59,15 +59,15 @@ development_status:
   3-3-unlock-route-logic: done
   epic-3-retrospective: optional
 
-  epic-4: backlog
-  4-1-capture-pokemon: backlog
-  4-2-select-active-team: backlog
-  4-3-passive-team-dps: backlog
-  4-4-boss-timer-logic: backlog
+  epic-4: in-progress
+  4-1-capture-pokemon: done
+  4-2-select-active-team: review
+  4-3-passive-team-dps: done
+  4-4-boss-timer-logic: done
   epic-4-retrospective: optional
 
-  epic-5: backlog
-  5-1-shop-purchase: backlog
+  epic-5: in-progress
+  5-1-shop-purchase: ready-for-dev
   5-2-cloud-save-sync: backlog
   5-3-prestige-reset: backlog
   5-4-tech-backend-prep: done

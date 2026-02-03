@@ -172,6 +172,8 @@ class ZoneTile extends StatelessWidget {
         return Colors.blue.shade600;
       case ZoneType.dungeon:
         return Colors.purple.shade600;
+      case ZoneType.boss:
+        return Colors.red.shade800;
     }
   }
 
@@ -183,6 +185,8 @@ class ZoneTile extends StatelessWidget {
         return Icons.location_city;
       case ZoneType.dungeon:
         return Icons.terrain;
+      case ZoneType.boss:
+        return Icons.security;
     }
   }
 
@@ -194,6 +198,8 @@ class ZoneTile extends StatelessWidget {
         return 'Town • Hub Area';
       case ZoneType.dungeon:
         return 'Dungeon • Challenge';
+      case ZoneType.boss:
+        return 'Boss • Gatekeeper';
     }
   }
 }

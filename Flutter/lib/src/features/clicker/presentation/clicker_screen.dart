@@ -11,6 +11,10 @@ import '../application/pokemon_cache_service.dart';
 import '../domain/clicker_state.dart';
 import 'widgets/poke_currency.dart';
 
+import 'package:pokeclickerlive/src/features/collection/presentation/team_screen.dart';
+import 'package:pokeclickerlive/src/features/collection/application/collection_controller.dart';
+import 'package:pokeclickerlive/src/features/collection/application/capture_service.dart';
+
 class ClickerScreen extends ConsumerStatefulWidget {
   const ClickerScreen({super.key});
 
@@ -103,6 +107,12 @@ class _ClickerScreenState extends ConsumerState<ClickerScreen>
           end: Alignment.bottomCenter,
           colors: [Colors.purple.shade100, Colors.deepPurple.shade200],
         );
+      case ZoneType.boss:
+        return LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.red.shade900, Colors.black],
+        );
     }
   }
 
@@ -167,28 +177,92 @@ class _ClickerScreenState extends ConsumerState<ClickerScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Kill Progress indicator
-          if (targetKills != null)
+          // Boss Timer
+          if (state.isBoss)
             Padding(
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.only(bottom: 8),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 4,
+                  vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: Colors.red.shade800,
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                child: Text(
-                  'Kills: $currentKills / $targetKills',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: Colors.black54,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.timer, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'BOSS TIME: ${state.remainingBossTime}s',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            ),
+
+          // Kill Progress indicator & Battle Boss Button
+          if (targetKills != null && !state.isBoss)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child:
+                  currentKills >= targetKills &&
+                      zoneState.currentZone.bossPokemonId != null
+                  ? ElevatedButton.icon(
+                      onPressed: () => ref
+                          .read(clickerControllerProvider.notifier)
+                          .startBossEncounter(),
+                      icon: const Icon(Icons.security, color: Colors.white),
+                      label: const Text(
+                        'BATTLE BOSS',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade900,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 5,
+                      ),
+                    )
+                  : Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'Kills: $currentKills / $targetKills',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
             ),
 
           // Stats Row
@@ -202,7 +276,8 @@ class _ClickerScreenState extends ConsumerState<ClickerScreen>
                   label: 'DMG',
                   value: '${state.clickPower}',
                 ),
-                _StatChip(icon: '⚡', label: 'DPS', value: '${state.dps}'),
+                _StatChip(icon: '⚡', label: 'SHOP', value: '${state.dps}'),
+                _StatChip(icon: '👥', label: 'TEAM', value: '${state.teamDps}'),
                 _StatChip(
                   icon: '🎯',
                   label: 'CRIT',
@@ -211,7 +286,7 @@ class _ClickerScreenState extends ConsumerState<ClickerScreen>
               ],
             ),
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 15),
 
           // Pokémon Display
           if (state.isLoading)
@@ -219,6 +294,26 @@ class _ClickerScreenState extends ConsumerState<ClickerScreen>
           else if (state.currentPokemon != null)
             Column(
               children: [
+                if (state.isBoss)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'BOSS',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 // Pokémon Name
                 Text(
                   state.currentPokemon!.name,
@@ -332,12 +427,49 @@ class _ClickerScreenState extends ConsumerState<ClickerScreen>
       }
     });
 
+    // Listen for captures
+    ref.listen(
+      collectionControllerProvider.select((s) => s.lastCaptureResult),
+      (previous, next) {
+        if (next != null) {
+          final isSuccess = next == CaptureResult.success;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                isSuccess
+                    ? '🎯 Pokémon Caught! Added to collection.'
+                    : '💨 The Pokémon escaped!',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: isSuccess ? Colors.purple : Colors.grey.shade700,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+
+          // Clear notification state
+          ref
+              .read(collectionControllerProvider.notifier)
+              .clearCaptureNotification();
+        }
+      },
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(zoneState.currentZone.name),
         backgroundColor: Colors.red.shade700,
         foregroundColor: Colors.white,
         actions: [
+          // Team button
+          IconButton(
+            icon: const Icon(Icons.people),
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const TeamScreen()));
+            },
+          ),
           // Map button
           IconButton(
             icon: const Icon(Icons.map),
@@ -372,7 +504,9 @@ class _ClickerScreenState extends ConsumerState<ClickerScreen>
             decoration: BoxDecoration(
               gradient: _getZoneGradient(zoneState.currentZone.type),
             ),
-            child: zoneState.currentZone.pokemonIds.isEmpty
+            child:
+                zoneState.currentZone.pokemonIds.isEmpty &&
+                    zoneState.currentZone.type != ZoneType.boss
                 ? _buildTownView(zoneState.currentZone.name)
                 : _buildCombatView(
                     state,

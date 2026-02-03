@@ -13,7 +13,10 @@ abstract class ClickerState with _$ClickerState {
     @Default(false) bool isLoading,
     @Default(1) int clickPower,
     @Default(0) int dps,
+    @Default(0) int teamDps,
     @Default(0) int critChance,
+    @Default(false) bool isBoss,
+    @Default(0) int remainingBossTime,
     Pokemon? currentPokemon,
   }) = _ClickerState;
 }

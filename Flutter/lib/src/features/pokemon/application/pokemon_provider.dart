@@ -15,3 +15,10 @@ Future<Pokemon?> randomPokemon(Ref ref) async {
   final result = await repo.getRandomSinnohPokemon();
   return result.fold((failure) => null, (pokemon) => pokemon);
 }
+
+@riverpod
+Future<Pokemon?> pokemonDetails(Ref ref, int id) async {
+  final repo = ref.watch(pokemonRepositoryProvider);
+  final result = await repo.getPokemon(id);
+  return result.fold((failure) => null, (pokemon) => pokemon);
+}

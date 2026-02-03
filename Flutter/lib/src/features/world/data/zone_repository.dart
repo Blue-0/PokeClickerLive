@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../domain/zone.dart';
 import '../domain/zone_type.dart';
@@ -40,30 +39,55 @@ class ZoneRepository {
       pokemonIds: [396, 399, 401, 403], // Starly, Bidoof, Kricketot, Shinx
     ),
 
-    // Sandgem Town - Hub, unlocked after 10 kills on Route 201
-    Zone(
+    // Boss Route 201 - Unlocked after 10 kills on route-201
+    const Zone(
+      id: 'boss-201',
+      name: 'Kricketune (Boss)',
+      type: ZoneType.boss,
+      isUnlocked: false,
+      unlockCondition: UnlockCondition(
+        killCount: 10,
+        sourceZoneId: 'route-201',
+      ),
+      bossPokemonId: 402, // Kricketune
+      bossTimerSeconds: 30,
+    ),
+
+    // Sandgem Town - Hub, unlocked after defeating Boss 201 (1 kill in boss zone)
+    const Zone(
       id: 'sandgem-town',
       name: 'Sandgem Town',
       type: ZoneType.town,
       isUnlocked: false,
-      unlockCondition: const UnlockCondition(
-        killCount: 10,
-        sourceZoneId: 'route-201',
-      ),
-      pokemonIds: const [], // Towns don't have wild Pokémon
+      unlockCondition: UnlockCondition(killCount: 1, sourceZoneId: 'boss-201'),
+      pokemonIds: [],
     ),
 
     // Route 202 - Next route
-    Zone(
+    const Zone(
       id: 'route-202',
       name: 'Route 202',
       type: ZoneType.route,
       isUnlocked: false,
-      unlockCondition: const UnlockCondition(
-        killCount: 10,
-        sourceZoneId: 'route-201',
+      unlockCondition: UnlockCondition(
+        killCount: 1,
+        sourceZoneId: 'sandgem-town',
       ),
-      pokemonIds: const [396, 399, 401, 403, 265], // +Wurmple
+      pokemonIds: [396, 399, 401, 403, 265], // +Wurmple
+    ),
+
+    // Boss Route 202
+    const Zone(
+      id: 'boss-202',
+      name: 'Buizel (Boss)',
+      type: ZoneType.boss,
+      isUnlocked: false,
+      unlockCondition: UnlockCondition(
+        killCount: 10,
+        sourceZoneId: 'route-202',
+      ),
+      bossPokemonId: 418, // Buizel
+      bossTimerSeconds: 30,
     ),
   ];
 }

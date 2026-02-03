@@ -21,7 +21,9 @@ mixin _$Zone {
  ZoneType get type;/// Whether the zone is currently unlocked for the player
  bool get isUnlocked;/// Condition to unlock this zone (null if always unlocked)
  UnlockCondition? get unlockCondition;/// IDs of Pokémon that can spawn in this zone
- List<int> get pokemonIds;
+ List<int> get pokemonIds;/// ID of the Boss Pokémon for this zone (null if no boss)
+ int? get bossPokemonId;/// Duration of the boss timer in seconds (null if using default)
+ int? get bossTimerSeconds;
 /// Create a copy of Zone
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -34,16 +36,16 @@ $ZoneCopyWith<Zone> get copyWith => _$ZoneCopyWithImpl<Zone>(this as Zone, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Zone&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.isUnlocked, isUnlocked) || other.isUnlocked == isUnlocked)&&(identical(other.unlockCondition, unlockCondition) || other.unlockCondition == unlockCondition)&&const DeepCollectionEquality().equals(other.pokemonIds, pokemonIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Zone&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.isUnlocked, isUnlocked) || other.isUnlocked == isUnlocked)&&(identical(other.unlockCondition, unlockCondition) || other.unlockCondition == unlockCondition)&&const DeepCollectionEquality().equals(other.pokemonIds, pokemonIds)&&(identical(other.bossPokemonId, bossPokemonId) || other.bossPokemonId == bossPokemonId)&&(identical(other.bossTimerSeconds, bossTimerSeconds) || other.bossTimerSeconds == bossTimerSeconds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,type,isUnlocked,unlockCondition,const DeepCollectionEquality().hash(pokemonIds));
+int get hashCode => Object.hash(runtimeType,id,name,type,isUnlocked,unlockCondition,const DeepCollectionEquality().hash(pokemonIds),bossPokemonId,bossTimerSeconds);
 
 @override
 String toString() {
-  return 'Zone(id: $id, name: $name, type: $type, isUnlocked: $isUnlocked, unlockCondition: $unlockCondition, pokemonIds: $pokemonIds)';
+  return 'Zone(id: $id, name: $name, type: $type, isUnlocked: $isUnlocked, unlockCondition: $unlockCondition, pokemonIds: $pokemonIds, bossPokemonId: $bossPokemonId, bossTimerSeconds: $bossTimerSeconds)';
 }
 
 
@@ -54,7 +56,7 @@ abstract mixin class $ZoneCopyWith<$Res>  {
   factory $ZoneCopyWith(Zone value, $Res Function(Zone) _then) = _$ZoneCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, ZoneType type, bool isUnlocked, UnlockCondition? unlockCondition, List<int> pokemonIds
+ String id, String name, ZoneType type, bool isUnlocked, UnlockCondition? unlockCondition, List<int> pokemonIds, int? bossPokemonId, int? bossTimerSeconds
 });
 
 
@@ -71,7 +73,7 @@ class _$ZoneCopyWithImpl<$Res>
 
 /// Create a copy of Zone
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? type = null,Object? isUnlocked = null,Object? unlockCondition = freezed,Object? pokemonIds = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? type = null,Object? isUnlocked = null,Object? unlockCondition = freezed,Object? pokemonIds = null,Object? bossPokemonId = freezed,Object? bossTimerSeconds = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -79,7 +81,9 @@ as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non
 as ZoneType,isUnlocked: null == isUnlocked ? _self.isUnlocked : isUnlocked // ignore: cast_nullable_to_non_nullable
 as bool,unlockCondition: freezed == unlockCondition ? _self.unlockCondition : unlockCondition // ignore: cast_nullable_to_non_nullable
 as UnlockCondition?,pokemonIds: null == pokemonIds ? _self.pokemonIds : pokemonIds // ignore: cast_nullable_to_non_nullable
-as List<int>,
+as List<int>,bossPokemonId: freezed == bossPokemonId ? _self.bossPokemonId : bossPokemonId // ignore: cast_nullable_to_non_nullable
+as int?,bossTimerSeconds: freezed == bossTimerSeconds ? _self.bossTimerSeconds : bossTimerSeconds // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 /// Create a copy of Zone
@@ -176,10 +180,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  ZoneType type,  bool isUnlocked,  UnlockCondition? unlockCondition,  List<int> pokemonIds)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  ZoneType type,  bool isUnlocked,  UnlockCondition? unlockCondition,  List<int> pokemonIds,  int? bossPokemonId,  int? bossTimerSeconds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Zone() when $default != null:
-return $default(_that.id,_that.name,_that.type,_that.isUnlocked,_that.unlockCondition,_that.pokemonIds);case _:
+return $default(_that.id,_that.name,_that.type,_that.isUnlocked,_that.unlockCondition,_that.pokemonIds,_that.bossPokemonId,_that.bossTimerSeconds);case _:
   return orElse();
 
 }
@@ -197,10 +201,10 @@ return $default(_that.id,_that.name,_that.type,_that.isUnlocked,_that.unlockCond
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  ZoneType type,  bool isUnlocked,  UnlockCondition? unlockCondition,  List<int> pokemonIds)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  ZoneType type,  bool isUnlocked,  UnlockCondition? unlockCondition,  List<int> pokemonIds,  int? bossPokemonId,  int? bossTimerSeconds)  $default,) {final _that = this;
 switch (_that) {
 case _Zone():
-return $default(_that.id,_that.name,_that.type,_that.isUnlocked,_that.unlockCondition,_that.pokemonIds);case _:
+return $default(_that.id,_that.name,_that.type,_that.isUnlocked,_that.unlockCondition,_that.pokemonIds,_that.bossPokemonId,_that.bossTimerSeconds);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -217,10 +221,10 @@ return $default(_that.id,_that.name,_that.type,_that.isUnlocked,_that.unlockCond
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  ZoneType type,  bool isUnlocked,  UnlockCondition? unlockCondition,  List<int> pokemonIds)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  ZoneType type,  bool isUnlocked,  UnlockCondition? unlockCondition,  List<int> pokemonIds,  int? bossPokemonId,  int? bossTimerSeconds)?  $default,) {final _that = this;
 switch (_that) {
 case _Zone() when $default != null:
-return $default(_that.id,_that.name,_that.type,_that.isUnlocked,_that.unlockCondition,_that.pokemonIds);case _:
+return $default(_that.id,_that.name,_that.type,_that.isUnlocked,_that.unlockCondition,_that.pokemonIds,_that.bossPokemonId,_that.bossTimerSeconds);case _:
   return null;
 
 }
@@ -232,7 +236,7 @@ return $default(_that.id,_that.name,_that.type,_that.isUnlocked,_that.unlockCond
 @JsonSerializable()
 
 class _Zone implements Zone {
-  const _Zone({required this.id, required this.name, required this.type, this.isUnlocked = false, this.unlockCondition, final  List<int> pokemonIds = const []}): _pokemonIds = pokemonIds;
+  const _Zone({required this.id, required this.name, required this.type, this.isUnlocked = false, this.unlockCondition, final  List<int> pokemonIds = const [], this.bossPokemonId, this.bossTimerSeconds}): _pokemonIds = pokemonIds;
   factory _Zone.fromJson(Map<String, dynamic> json) => _$ZoneFromJson(json);
 
 /// Unique identifier for the zone (e.g., 'route-201')
@@ -254,6 +258,10 @@ class _Zone implements Zone {
   return EqualUnmodifiableListView(_pokemonIds);
 }
 
+/// ID of the Boss Pokémon for this zone (null if no boss)
+@override final  int? bossPokemonId;
+/// Duration of the boss timer in seconds (null if using default)
+@override final  int? bossTimerSeconds;
 
 /// Create a copy of Zone
 /// with the given fields replaced by the non-null parameter values.
@@ -268,16 +276,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Zone&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.isUnlocked, isUnlocked) || other.isUnlocked == isUnlocked)&&(identical(other.unlockCondition, unlockCondition) || other.unlockCondition == unlockCondition)&&const DeepCollectionEquality().equals(other._pokemonIds, _pokemonIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Zone&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.isUnlocked, isUnlocked) || other.isUnlocked == isUnlocked)&&(identical(other.unlockCondition, unlockCondition) || other.unlockCondition == unlockCondition)&&const DeepCollectionEquality().equals(other._pokemonIds, _pokemonIds)&&(identical(other.bossPokemonId, bossPokemonId) || other.bossPokemonId == bossPokemonId)&&(identical(other.bossTimerSeconds, bossTimerSeconds) || other.bossTimerSeconds == bossTimerSeconds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,type,isUnlocked,unlockCondition,const DeepCollectionEquality().hash(_pokemonIds));
+int get hashCode => Object.hash(runtimeType,id,name,type,isUnlocked,unlockCondition,const DeepCollectionEquality().hash(_pokemonIds),bossPokemonId,bossTimerSeconds);
 
 @override
 String toString() {
-  return 'Zone(id: $id, name: $name, type: $type, isUnlocked: $isUnlocked, unlockCondition: $unlockCondition, pokemonIds: $pokemonIds)';
+  return 'Zone(id: $id, name: $name, type: $type, isUnlocked: $isUnlocked, unlockCondition: $unlockCondition, pokemonIds: $pokemonIds, bossPokemonId: $bossPokemonId, bossTimerSeconds: $bossTimerSeconds)';
 }
 
 
@@ -288,7 +296,7 @@ abstract mixin class _$ZoneCopyWith<$Res> implements $ZoneCopyWith<$Res> {
   factory _$ZoneCopyWith(_Zone value, $Res Function(_Zone) _then) = __$ZoneCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, ZoneType type, bool isUnlocked, UnlockCondition? unlockCondition, List<int> pokemonIds
+ String id, String name, ZoneType type, bool isUnlocked, UnlockCondition? unlockCondition, List<int> pokemonIds, int? bossPokemonId, int? bossTimerSeconds
 });
 
 
@@ -305,7 +313,7 @@ class __$ZoneCopyWithImpl<$Res>
 
 /// Create a copy of Zone
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? type = null,Object? isUnlocked = null,Object? unlockCondition = freezed,Object? pokemonIds = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? type = null,Object? isUnlocked = null,Object? unlockCondition = freezed,Object? pokemonIds = null,Object? bossPokemonId = freezed,Object? bossTimerSeconds = freezed,}) {
   return _then(_Zone(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -313,7 +321,9 @@ as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non
 as ZoneType,isUnlocked: null == isUnlocked ? _self.isUnlocked : isUnlocked // ignore: cast_nullable_to_non_nullable
 as bool,unlockCondition: freezed == unlockCondition ? _self.unlockCondition : unlockCondition // ignore: cast_nullable_to_non_nullable
 as UnlockCondition?,pokemonIds: null == pokemonIds ? _self._pokemonIds : pokemonIds // ignore: cast_nullable_to_non_nullable
-as List<int>,
+as List<int>,bossPokemonId: freezed == bossPokemonId ? _self.bossPokemonId : bossPokemonId // ignore: cast_nullable_to_non_nullable
+as int?,bossTimerSeconds: freezed == bossTimerSeconds ? _self.bossTimerSeconds : bossTimerSeconds // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

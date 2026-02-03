@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../data/zone_repository.dart';
 import '../domain/zone.dart';
+import '../domain/zone_type.dart';
 
 part 'zone_controller.freezed.dart';
 part 'zone_controller.g.dart';
@@ -88,6 +89,17 @@ class ZoneController extends _$ZoneController {
     );
   }
 
+  /// Decrease kill count (e.g. penalty for failing boss)
+  void decreaseKillCount() {
+    final currentId = state.currentZone.id;
+    final currentCount = state.killCounts[currentId] ?? 0;
+    if (currentCount > 0) {
+      final newCounts = Map<String, int>.from(state.killCounts);
+      newCounts[currentId] = currentCount - 1;
+      state = state.copyWith(killCounts: newCounts);
+    }
+  }
+
   /// Clear the notification for newly unlocked zone
   void clearUnlockNotification() {
     state = state.copyWith(newlyUnlockedZoneNames: []);
@@ -139,17 +151,60 @@ class ZoneController extends _$ZoneController {
     return pokemonIds[index];
   }
 
+  /// Check if a Boss is ready to be spawned in the current zone
+  bool isBossReady() {
+    // New logic: Check if any unlocked boss zone depends on this one
+    final currentId = state.currentZone.id;
+    final bossZones = state.allZones.where((z) {
+      return z.type == ZoneType.boss &&
+          z.unlockCondition?.sourceZoneId == currentId &&
+          z.isUnlocked;
+    });
+
+    return bossZones.isNotEmpty;
+  }
+
+  /// Get the Boss Pokémon ID for the current zone's boss
+  int? getBossPokemonId() {
+    final currentId = state.currentZone.id;
+    final bossZone = state.allZones.where((z) {
+      return z.type == ZoneType.boss &&
+          z.unlockCondition?.sourceZoneId == currentId;
+    }).firstOrNull;
+
+    return bossZone?.bossPokemonId;
+  }
+
+  /// Changes the current zone and triggers a reload
+  void changeZone(Zone zone) {
+    state = state.copyWith(currentZone: zone);
+  }
+
+  /// Returns to the previous zone (used when failing a boss)
+  void returnToPreviousZone() {
+    final currentZone = state.currentZone;
+    if (currentZone.type == ZoneType.boss &&
+        currentZone.unlockCondition != null) {
+      final prevZone = state.allZones
+          .where((z) => z.id == currentZone.unlockCondition!.sourceZoneId)
+          .firstOrNull;
+      if (prevZone != null) {
+        changeZone(prevZone);
+      }
+    }
+  }
+
   /// Get the kill target for the current zone to unlock the next one(s)
-  /// Returns null if no zones depend on this one or all are already unlocked
+  /// Returns 10 by default if no zones depend on this one, to allow boss triggering.
   int? getKillTargetForCurrentZone() {
     final currentId = state.currentZone.id;
     final dependencies = state.allZones.where((z) {
-      return z.unlockCondition?.sourceZoneId == currentId && !z.isUnlocked;
+      return z.unlockCondition?.sourceZoneId == currentId;
     });
 
-    if (dependencies.isEmpty) return null;
+    if (dependencies.isEmpty) return 10;
 
-    // Return the minimum kill count required among locked dependencies
+    // Return the minimum kill count required among dependencies
     return dependencies
         .map((z) => z.unlockCondition!.killCount)
         .reduce((a, b) => a < b ? a : b);

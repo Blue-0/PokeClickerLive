@@ -89,3 +89,73 @@ final class RandomPokemonProvider
 }
 
 String _$randomPokemonHash() => r'a2ccc88d196a18b604d0152c8a62667df9c05335';
+
+@ProviderFor(pokemonDetails)
+final pokemonDetailsProvider = PokemonDetailsFamily._();
+
+final class PokemonDetailsProvider
+    extends
+        $FunctionalProvider<AsyncValue<Pokemon?>, Pokemon?, FutureOr<Pokemon?>>
+    with $FutureModifier<Pokemon?>, $FutureProvider<Pokemon?> {
+  PokemonDetailsProvider._({
+    required PokemonDetailsFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'pokemonDetailsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$pokemonDetailsHash();
+
+  @override
+  String toString() {
+    return r'pokemonDetailsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<Pokemon?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Pokemon?> create(Ref ref) {
+    final argument = this.argument as int;
+    return pokemonDetails(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PokemonDetailsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$pokemonDetailsHash() => r'd7bcf9d99a240e4a3155b3ecaf3b3dbf4352d10a';
+
+final class PokemonDetailsFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<Pokemon?>, int> {
+  PokemonDetailsFamily._()
+    : super(
+        retry: null,
+        name: r'pokemonDetailsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PokemonDetailsProvider call(int id) =>
+      PokemonDetailsProvider._(argument: id, from: this);
+
+  @override
+  String toString() => r'pokemonDetailsProvider';
+}
