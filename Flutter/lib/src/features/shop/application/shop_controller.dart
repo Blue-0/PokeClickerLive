@@ -1,21 +1,50 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:pokeclickerlive/src/features/clicker/application/clicker_controller.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import '../../clicker/application/clicker_controller.dart';
+import '../data/shop_repository.dart';
+import '../domain/shop_item.dart';
 import '../domain/shop_state.dart';
 import '../domain/upgrade.dart';
+import 'inventory_controller.dart';
 
 part 'shop_controller.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class ShopController extends _$ShopController {
+  late final Box<Map> _upgradeBox;
+
   @override
   ShopState build() {
-    return ShopState.initial();
+    _upgradeBox = Hive.box<Map>('upgrade_levels');
+    final repository = ref.read(shopRepositoryProvider);
+    final savedLevels = _loadUpgradeLevels();
+
+    // Apply saved levels to upgrades
+    final upgrades = repository.getAvailableUpgrades().map((upgrade) {
+      final savedLevel = savedLevels[upgrade.id] ?? 0;
+      return upgrade.copyWith(level: savedLevel);
+    }).toList();
+
+    return ShopState(items: repository.getAvailableItems(), upgrades: upgrades);
   }
 
-  /// Try to purchase an upgrade
+  Map<String, int> _loadUpgradeLevels() {
+    final saved = _upgradeBox.get('levels');
+    if (saved == null) return {};
+    return Map<String, int>.from(saved);
+  }
+
+  void _saveUpgradeLevels() {
+    final levels = <String, int>{};
+    for (final upgrade in state.upgrades) {
+      levels[upgrade.id] = upgrade.level;
+    }
+    _upgradeBox.put('levels', levels);
+  }
+
   bool purchaseUpgrade(String upgradeId) {
-    final clickerNotifier = ref.read(clickerControllerProvider.notifier);
-    final currency = ref.read(clickerControllerProvider).currency;
+    final clickerController = ref.read(clickerControllerProvider.notifier);
+    final clickerState = ref.read(clickerControllerProvider);
 
     final upgradeIndex = state.upgrades.indexWhere((u) => u.id == upgradeId);
     if (upgradeIndex == -1) return false;
@@ -23,49 +52,64 @@ class ShopController extends _$ShopController {
     final upgrade = state.upgrades[upgradeIndex];
     final cost = upgrade.currentCost;
 
-    if (currency < cost) return false;
+    if (clickerState.currency >= cost) {
+      // 1. Deduct currency
+      clickerController.spendCurrency(cost);
 
-    // Deduct currency
-    clickerNotifier.spendCurrency(cost);
+      // 2. Apply effect to clicker
+      _applyUpgradeEffect(upgrade);
 
-    // Level up the upgrade
-    final newUpgrades = List<Upgrade>.from(state.upgrades);
-    newUpgrades[upgradeIndex] = Upgrade(
-      id: upgrade.id,
-      name: upgrade.name,
-      description: upgrade.description,
-      icon: upgrade.icon,
-      level: upgrade.level + 1,
-      baseCost: upgrade.baseCost,
-      costMultiplier: upgrade.costMultiplier,
-      effectValue: upgrade.effectValue,
-    );
+      // 3. Increment upgrade level
+      final updatedUpgrades = List<Upgrade>.from(state.upgrades);
+      updatedUpgrades[upgradeIndex] = upgrade.copyWith(
+        level: upgrade.level + 1,
+      );
+      state = state.copyWith(upgrades: updatedUpgrades);
 
-    state = state.copyWith(upgrades: newUpgrades);
+      // 4. Persist upgrade levels
+      _saveUpgradeLevels();
 
-    // Apply upgrade effect
-    _applyUpgradeEffect(upgradeId);
-
-    return true;
+      return true;
+    }
+    return false;
   }
 
-  void _applyUpgradeEffect(String upgradeId) {
-    final clickerNotifier = ref.read(clickerControllerProvider.notifier);
-
-    switch (upgradeId) {
+  void _applyUpgradeEffect(Upgrade upgrade) {
+    final clickerController = ref.read(clickerControllerProvider.notifier);
+    switch (upgrade.id) {
       case 'click_power':
-        clickerNotifier.increaseClickPower(1);
+        clickerController.increaseClickPower(upgrade.effectValue);
         break;
       case 'auto_clicker':
-        clickerNotifier.increaseDps(1);
+        clickerController.increaseDps(upgrade.effectValue);
         break;
       case 'critical_hit':
-        clickerNotifier.increaseCritChance(5);
+        clickerController.increaseCritChance(upgrade.effectValue);
         break;
     }
   }
 
-  Upgrade? getUpgrade(String id) {
-    return state.upgrades.where((u) => u.id == id).firstOrNull;
+  bool purchaseItem(ShopItem item) {
+    final clickerController = ref.read(clickerControllerProvider.notifier);
+    final clickerState = ref.read(clickerControllerProvider);
+    final inventoryController = ref.read(inventoryControllerProvider.notifier);
+
+    // 1. Check if user has enough currency
+    if (clickerState.currency < item.price) {
+      return false;
+    }
+
+    // 2. Check if user meets level requirement
+    if (clickerState.level < item.minLevel) {
+      return false;
+    }
+
+    // 3. Deduct currency
+    clickerController.spendCurrency(item.price);
+
+    // 4. Add to inventory
+    inventoryController.addItem(item.id);
+
+    return true;
   }
 }

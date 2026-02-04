@@ -117,7 +117,7 @@ void main() {
         () => mockPokemonRepo.getPokemon(402),
       ).thenAnswer((_) async => Right(bossPokemon));
 
-      final controller = container.read(clickerControllerProvider.notifier);
+      container.read(clickerControllerProvider.notifier);
       await Future.delayed(Duration.zero);
 
       // Verify Boss is active

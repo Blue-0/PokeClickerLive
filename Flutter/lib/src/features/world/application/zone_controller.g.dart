@@ -44,7 +44,7 @@ final class ZoneControllerProvider
   }
 }
 
-String _$zoneControllerHash() => r'90fabc65f38c904b70b352f18b525df6a896f587';
+String _$zoneControllerHash() => r'0f2dad89e6367f8fda959d2e5b758ea773c7746c';
 
 /// Controller for managing zone selection and progression
 

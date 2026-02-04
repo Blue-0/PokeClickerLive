@@ -67,9 +67,9 @@ development_status:
   epic-4-retrospective: optional
 
   epic-5: in-progress
-  5-1-shop-purchase: ready-for-dev
-  5-2-cloud-save-sync: backlog
-  5-3-prestige-reset: backlog
+  5-1-shop-purchase: done
+  5-2-cloud-save-sync: review
+  5-3-prestige-reset: in-progress
   5-4-tech-backend-prep: done
   5-5-tech-backend-align: done
   epic-5-retrospective: optional

@@ -14,6 +14,11 @@ import 'widgets/poke_currency.dart';
 import 'package:pokeclickerlive/src/features/collection/presentation/team_screen.dart';
 import 'package:pokeclickerlive/src/features/collection/application/collection_controller.dart';
 import 'package:pokeclickerlive/src/features/collection/application/capture_service.dart';
+import 'package:pokeclickerlive/src/features/auth/application/auth_controller.dart';
+import 'package:pokeclickerlive/src/features/auth/presentation/login_dialog.dart';
+import 'package:pokeclickerlive/src/features/sync/application/sync_controller.dart';
+import 'package:pokeclickerlive/src/features/prestige/application/prestige_controller.dart';
+import 'package:pokeclickerlive/src/features/prestige/presentation/prestige_dialog.dart';
 
 class ClickerScreen extends ConsumerStatefulWidget {
   const ClickerScreen({super.key});
@@ -479,13 +484,26 @@ class _ClickerScreenState extends ConsumerState<ClickerScreen>
               ).push(MaterialPageRoute(builder: (_) => const ZoneMapScreen()));
             },
           ),
+          // Shop button
+          IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const ShopScreen()));
+            },
+          ),
           // Currency display
           Center(
             child: Padding(
-              padding: const EdgeInsets.only(right: 16.0),
+              padding: const EdgeInsets.only(right: 8.0),
               child: PokeCurrency(currency: state.currency),
             ),
           ),
+          // Prestige Button
+          _PrestigeButton(),
+          // Sync & Auth
+          _SyncStatusButton(),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -529,6 +547,91 @@ class _ClickerScreenState extends ConsumerState<ClickerScreen>
           }),
         ],
       ),
+    );
+  }
+}
+
+class _SyncStatusButton extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authControllerProvider);
+    final syncState = ref.watch(syncControllerProvider);
+
+    if (!authState.isAuthenticated) {
+      return IconButton(
+        icon: const Icon(Icons.cloud_off, color: Colors.white70),
+        tooltip: 'Login to Enable Cloud Sync',
+        onPressed: () {
+          showDialog(context: context, builder: (_) => const LoginDialog());
+        },
+      );
+    }
+
+    return PopupMenuButton<String>(
+      icon: Stack(
+        children: [
+          Icon(
+            syncState.isSyncing ? Icons.sync : Icons.cloud_done,
+            // M4 FIX: Only show warning color after 3+ consecutive failures
+            color: syncState.consecutiveFailures >= 3
+                ? Colors.orange
+                : Colors.white,
+          ),
+          if (syncState.hasPendingSync)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+        ],
+      ),
+      onSelected: (value) {
+        if (value == 'sync') {
+          ref.read(syncControllerProvider.notifier).sync();
+        } else if (value == 'logout') {
+          ref.read(authControllerProvider.notifier).logout();
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'sync',
+          child: Row(
+            children: [
+              const Icon(Icons.sync, color: Colors.black54),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Sync Now'),
+                  if (syncState.lastSyncTimestamp > 0)
+                    Text(
+                      'Last: ${DateTime.fromMillisecondsSinceEpoch(syncState.lastSyncTimestamp * 1000).toString().split('.')[0]}',
+                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'logout',
+          child: Row(
+            children: [
+              Icon(Icons.logout, color: Colors.redAccent),
+              SizedBox(width: 8),
+              Text('Logout'),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -631,6 +734,54 @@ class _FloatingText extends StatelessWidget {
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+}
+
+class _PrestigeButton extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final prestigeState = ref.watch(prestigeControllerProvider);
+    final zoneState = ref.watch(zoneControllerProvider);
+
+    // Milestone: Defeated Boss 201
+    final milestoneMet =
+        zoneState.killCounts['boss-201'] != null &&
+        zoneState.killCounts['boss-201']! >= 1;
+
+    if (!milestoneMet && prestigeState.prestigeLevel == 0) {
+      return const SizedBox.shrink();
+    }
+
+    return IconButton(
+      icon: Stack(
+        children: [
+          const Icon(Icons.star, color: Colors.amber),
+          if (prestigeState.prestigeLevel > 0)
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  '${prestigeState.prestigeLevel}',
+                  style: const TextStyle(color: Colors.white, fontSize: 8),
+                ),
+              ),
+            ),
+        ],
+      ),
+      tooltip: 'Prestige Menu',
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (_) => const PrestigeConfirmationDialog(),
         );
       },
     );

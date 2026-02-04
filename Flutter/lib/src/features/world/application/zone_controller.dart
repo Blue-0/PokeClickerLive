@@ -209,4 +209,18 @@ class ZoneController extends _$ZoneController {
         .map((z) => z.unlockCondition!.killCount)
         .reduce((a, b) => a < b ? a : b);
   }
+
+  /// Reset all progression and return to the starting zone
+  void resetToStart() {
+    final repository = ref.read(zoneRepositoryProvider);
+    final allZones = repository.getAllZones();
+    final startingZone = repository.getStartingZone();
+
+    state = state.copyWith(
+      allZones: allZones,
+      currentZone: startingZone,
+      killCounts: {},
+      newlyUnlockedZoneNames: [],
+    );
+  }
 }

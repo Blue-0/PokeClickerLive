@@ -1,0 +1,24 @@
+ M Flutter/lib/app_bootstrap.dart
+ M Flutter/lib/src/features/clicker/application/clicker_controller.g.dart
+ M Flutter/lib/src/features/clicker/presentation/clicker_screen.dart
+ M Flutter/lib/src/features/shop/application/shop_controller.dart
+ M Flutter/lib/src/features/shop/application/shop_controller.g.dart
+ M Flutter/lib/src/features/shop/domain/shop_state.dart
+ M Flutter/lib/src/features/shop/domain/shop_state.freezed.dart
+ M Flutter/lib/src/features/shop/presentation/shop_screen.dart
+ M Flutter/lib/src/features/world/application/zone_controller.g.dart
+ M Flutter/lib/src/features/world/domain/zone.g.dart
+ M _bmad-output/implementation-artifacts/sprint-status.yaml
+ M _bmad-output/implementation-artifacts/stories/5-1-shop-purchase.md
+?? Flutter/lib/src/features/shop/application/inventory_controller.dart
+?? Flutter/lib/src/features/shop/application/inventory_controller.g.dart
+?? Flutter/lib/src/features/shop/data/
+?? Flutter/lib/src/features/shop/domain/inventory.dart
+?? Flutter/lib/src/features/shop/domain/inventory.freezed.dart
+?? Flutter/lib/src/features/shop/domain/inventory.g.dart
+?? Flutter/lib/src/features/shop/domain/shop_item.dart
+?? Flutter/lib/src/features/shop/domain/shop_item.freezed.dart
+?? Flutter/lib/src/features/shop/domain/shop_item.g.dart
+?? Flutter/test/src/features/shop/
+?? Flutter/test_output.txt
+?? git_status.log

@@ -8,6 +8,7 @@ import 'package:pokeclickerlive/src/features/world/domain/zone_type.dart';
 import '../../collection/application/collection_controller.dart';
 import '../../collection/application/capture_service.dart';
 import '../domain/clicker_state.dart';
+import '../../prestige/application/prestige_controller.dart';
 
 part 'clicker_controller.g.dart';
 
@@ -137,7 +138,10 @@ class ClickerController extends _$ClickerController {
   void click() {
     if (state.isLoading || state.currentPokemon == null) return;
 
-    final damage = state.clickPower;
+    final prestigeMultiplier = ref
+        .read(prestigeControllerProvider)
+        .permanentBonus;
+    final damage = (state.clickPower * prestigeMultiplier).floor();
     final isCrit = Random().nextInt(100) < state.critChance;
     final totalDamage = isCrit ? damage * 2 : damage;
 
@@ -173,6 +177,11 @@ class ClickerController extends _$ClickerController {
   void _defeatEnemy() {
     final pokemon = state.currentPokemon;
     int reward = pokemon != null ? (pokemon.attack ~/ 10) + 5 : 5;
+
+    final prestigeMultiplier = ref
+        .read(prestigeControllerProvider)
+        .permanentBonus;
+    reward = (reward * prestigeMultiplier).floor();
 
     if (state.isBoss) {
       reward *= 5; // AC-6: Defeating a boss provides larger reward
@@ -228,9 +237,14 @@ class ClickerController extends _$ClickerController {
     // Peace zones (towns) should not have auto-combat
     if (zoneState.currentZone.type == ZoneType.town) return;
 
-    final totalDps = state.dps + state.teamDps;
-    if (state.isLoading || totalDps <= 0 || state.currentPokemon == null)
+    final prestigeMultiplier = ref
+        .read(prestigeControllerProvider)
+        .permanentBonus;
+    final totalDps = ((state.dps + state.teamDps) * prestigeMultiplier).floor();
+
+    if (state.isLoading || totalDps <= 0 || state.currentPokemon == null) {
       return;
+    }
 
     state = state.copyWith(currentHp: state.currentHp - totalDps);
 
@@ -266,5 +280,26 @@ class ClickerController extends _$ClickerController {
 
   void increaseCritChance(int amount) {
     state = state.copyWith(critChance: state.critChance + amount);
+  }
+
+  void resetForPrestige() {
+    _autoClickTimer?.cancel();
+    _bossTimer?.cancel();
+
+    state = const ClickerState(
+      currency: 0,
+      currentHp: 10,
+      maxHp: 10,
+      level: 1,
+      isLoading: true,
+      clickPower: 1,
+      dps: 0,
+      teamDps: 0,
+      critChance: 0,
+      isBoss: false,
+      remainingBossTime: 0,
+    );
+
+    _loadNewPokemon();
   }
 }

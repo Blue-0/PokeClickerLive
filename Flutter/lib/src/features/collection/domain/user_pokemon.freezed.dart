@@ -11,6 +11,7 @@ part of 'user_pokemon.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+
 /// @nodoc
 mixin _$UserPokemon {
 
@@ -21,6 +22,8 @@ mixin _$UserPokemon {
 @pragma('vm:prefer-inline')
 $UserPokemonCopyWith<UserPokemon> get copyWith => _$UserPokemonCopyWithImpl<UserPokemon>(this as UserPokemon, _$identity);
 
+  /// Serializes this UserPokemon to a JSON map.
+  Map<String, dynamic> toJson();
 
 
 @override
@@ -28,7 +31,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is UserPokemon&&(identical(other.id, id) || other.id == id)&&(identical(other.pokemonId, pokemonId) || other.pokemonId == pokemonId)&&(identical(other.acquiredAt, acquiredAt) || other.acquiredAt == acquiredAt));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,id,pokemonId,acquiredAt);
 
@@ -205,11 +208,11 @@ return $default(_that.id,_that.pokemonId,_that.acquiredAt);case _:
 }
 
 /// @nodoc
-
+@JsonSerializable()
 
 class _UserPokemon implements UserPokemon {
   const _UserPokemon({required this.id, required this.pokemonId, required this.acquiredAt});
-  
+  factory _UserPokemon.fromJson(Map<String, dynamic> json) => _$UserPokemonFromJson(json);
 
 @override final  String id;
 @override final  int pokemonId;
@@ -221,14 +224,17 @@ class _UserPokemon implements UserPokemon {
 @pragma('vm:prefer-inline')
 _$UserPokemonCopyWith<_UserPokemon> get copyWith => __$UserPokemonCopyWithImpl<_UserPokemon>(this, _$identity);
 
-
+@override
+Map<String, dynamic> toJson() {
+  return _$UserPokemonToJson(this, );
+}
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserPokemon&&(identical(other.id, id) || other.id == id)&&(identical(other.pokemonId, pokemonId) || other.pokemonId == pokemonId)&&(identical(other.acquiredAt, acquiredAt) || other.acquiredAt == acquiredAt));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,id,pokemonId,acquiredAt);
 

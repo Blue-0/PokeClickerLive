@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ShopState {
 
- List<Upgrade> get upgrades;
+ List<Upgrade> get upgrades; List<ShopItem> get items;
 /// Create a copy of ShopState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $ShopStateCopyWith<ShopState> get copyWith => _$ShopStateCopyWithImpl<ShopState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ShopState&&const DeepCollectionEquality().equals(other.upgrades, upgrades));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ShopState&&const DeepCollectionEquality().equals(other.upgrades, upgrades)&&const DeepCollectionEquality().equals(other.items, items));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(upgrades));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(upgrades),const DeepCollectionEquality().hash(items));
 
 @override
 String toString() {
-  return 'ShopState(upgrades: $upgrades)';
+  return 'ShopState(upgrades: $upgrades, items: $items)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $ShopStateCopyWith<$Res>  {
   factory $ShopStateCopyWith(ShopState value, $Res Function(ShopState) _then) = _$ShopStateCopyWithImpl;
 @useResult
 $Res call({
- List<Upgrade> upgrades
+ List<Upgrade> upgrades, List<ShopItem> items
 });
 
 
@@ -62,10 +62,11 @@ class _$ShopStateCopyWithImpl<$Res>
 
 /// Create a copy of ShopState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? upgrades = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? upgrades = null,Object? items = null,}) {
   return _then(_self.copyWith(
 upgrades: null == upgrades ? _self.upgrades : upgrades // ignore: cast_nullable_to_non_nullable
-as List<Upgrade>,
+as List<Upgrade>,items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
+as List<ShopItem>,
   ));
 }
 
@@ -150,10 +151,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Upgrade> upgrades)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Upgrade> upgrades,  List<ShopItem> items)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ShopState() when $default != null:
-return $default(_that.upgrades);case _:
+return $default(_that.upgrades,_that.items);case _:
   return orElse();
 
 }
@@ -171,10 +172,10 @@ return $default(_that.upgrades);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Upgrade> upgrades)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Upgrade> upgrades,  List<ShopItem> items)  $default,) {final _that = this;
 switch (_that) {
 case _ShopState():
-return $default(_that.upgrades);case _:
+return $default(_that.upgrades,_that.items);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -191,10 +192,10 @@ return $default(_that.upgrades);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Upgrade> upgrades)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Upgrade> upgrades,  List<ShopItem> items)?  $default,) {final _that = this;
 switch (_that) {
 case _ShopState() when $default != null:
-return $default(_that.upgrades);case _:
+return $default(_that.upgrades,_that.items);case _:
   return null;
 
 }
@@ -206,7 +207,7 @@ return $default(_that.upgrades);case _:
 
 
 class _ShopState implements ShopState {
-  const _ShopState({required final  List<Upgrade> upgrades}): _upgrades = upgrades;
+  const _ShopState({required final  List<Upgrade> upgrades, required final  List<ShopItem> items}): _upgrades = upgrades,_items = items;
   
 
  final  List<Upgrade> _upgrades;
@@ -214,6 +215,13 @@ class _ShopState implements ShopState {
   if (_upgrades is EqualUnmodifiableListView) return _upgrades;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_upgrades);
+}
+
+ final  List<ShopItem> _items;
+@override List<ShopItem> get items {
+  if (_items is EqualUnmodifiableListView) return _items;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_items);
 }
 
 
@@ -227,16 +235,16 @@ _$ShopStateCopyWith<_ShopState> get copyWith => __$ShopStateCopyWithImpl<_ShopSt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ShopState&&const DeepCollectionEquality().equals(other._upgrades, _upgrades));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ShopState&&const DeepCollectionEquality().equals(other._upgrades, _upgrades)&&const DeepCollectionEquality().equals(other._items, _items));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_upgrades));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_upgrades),const DeepCollectionEquality().hash(_items));
 
 @override
 String toString() {
-  return 'ShopState(upgrades: $upgrades)';
+  return 'ShopState(upgrades: $upgrades, items: $items)';
 }
 
 
@@ -247,7 +255,7 @@ abstract mixin class _$ShopStateCopyWith<$Res> implements $ShopStateCopyWith<$Re
   factory _$ShopStateCopyWith(_ShopState value, $Res Function(_ShopState) _then) = __$ShopStateCopyWithImpl;
 @override @useResult
 $Res call({
- List<Upgrade> upgrades
+ List<Upgrade> upgrades, List<ShopItem> items
 });
 
 
@@ -264,10 +272,11 @@ class __$ShopStateCopyWithImpl<$Res>
 
 /// Create a copy of ShopState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? upgrades = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? upgrades = null,Object? items = null,}) {
   return _then(_ShopState(
 upgrades: null == upgrades ? _self._upgrades : upgrades // ignore: cast_nullable_to_non_nullable
-as List<Upgrade>,
+as List<Upgrade>,items: null == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
+as List<ShopItem>,
   ));
 }
 

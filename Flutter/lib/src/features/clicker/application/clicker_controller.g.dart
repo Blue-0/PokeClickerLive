@@ -41,7 +41,7 @@ final class ClickerControllerProvider
   }
 }
 
-String _$clickerControllerHash() => r'31a3b077e14ec71b4e2b07edd87f4b22a86085f0';
+String _$clickerControllerHash() => r'39f368b91605739739664ddcf718a73140704cb2';
 
 abstract class _$ClickerController extends $Notifier<ClickerState> {
   ClickerState build();

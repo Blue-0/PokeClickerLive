@@ -20,7 +20,7 @@ final class ShopControllerProvider
         argument: null,
         retry: null,
         name: r'shopControllerProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -41,7 +41,7 @@ final class ShopControllerProvider
   }
 }
 
-String _$shopControllerHash() => r'aa5368db2d49c464ea6822286ba6e94de434bcf7';
+String _$shopControllerHash() => r'd4d5bb1e53002c7eef28488f205613757788df10';
 
 abstract class _$ShopController extends $Notifier<ShopState> {
   ShopState build();

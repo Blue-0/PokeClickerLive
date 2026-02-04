@@ -40,4 +40,5 @@ const _$ZoneTypeEnumMap = {
   ZoneType.route: 'route',
   ZoneType.town: 'town',
   ZoneType.dungeon: 'dungeon',
+  ZoneType.boss: 'boss',
 };
