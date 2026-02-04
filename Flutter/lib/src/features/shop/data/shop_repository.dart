@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../domain/shop_item.dart';
 import '../domain/upgrade.dart';
 import '../domain/shop_constants.dart';
@@ -7,10 +8,37 @@ part 'shop_repository.g.dart';
 
 @Riverpod(keepAlive: true)
 ShopRepository shopRepository(Ref ref) {
-  return ShopRepository();
+  return ShopRepository(Supabase.instance.client);
 }
 
 class ShopRepository {
+  final SupabaseClient _supabase;
+
+  ShopRepository(this._supabase);
+
+  /// Calls the 'buy_asset' RPC function on Supabase.
+  ///
+  /// [assetType] should be 'pokemon' or 'infrastructure'.
+  /// [assetId] is the ID of the item to buy.
+  Future<Map<String, dynamic>> buyAsset({
+    required String assetType,
+    required int assetId,
+  }) async {
+    try {
+      final response = await _supabase.rpc('buy_asset', params: {
+        'p_asset_type': assetType,
+        'p_asset_id': assetId,
+      });
+
+      return response as Map<String, dynamic>;
+    } on PostgrestException catch (e) {
+      // Throw a clean error message from the database
+      throw Exception(e.message);
+    } catch (e) {
+      throw Exception('Purchase failed: $e');
+    }
+  }
+
   List<ShopItem> getAvailableItems() {
     return [
       const ShopItem(

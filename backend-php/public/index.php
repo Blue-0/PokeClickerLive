@@ -59,6 +59,10 @@ try {
     $router->post('/api/pokemon/catch', \App\Controllers\Api\PokemonApiController::class, 'catch');
     $router->get('/api/user/{id}/pokemon', \App\Controllers\Api\PokemonApiController::class, 'userPokemon');
 
+    // Admin routes
+    $router->get('/admin/pokemon', \App\Controllers\Admin\PokemonController::class, 'index');
+    $router->post('/admin/pokemon', \App\Controllers\Admin\PokemonController::class, 'store');
+
     $router->dispatch();
 } catch (Exception $e) {
     http_response_code(500);
