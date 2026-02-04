@@ -6,11 +6,13 @@ services:
       context: ./backend-php
       dockerfile: Dockerfile
     container_name: pokeclicker-api
-    working_dir: /var/www/html
-    volumes:
-      - ./backend-php:/var/www/html
     ports:
-      - "8080:8897"
+      - "8080:80"
+    environment:
+      - SUPABASE_URL
+      - SUPABASE_KEY
+      - SUPABASE_SERVICE_KEY
+      - JWT_SECRET
     env_file:
       - ./.env
-    restart: unless-stopped
+    restart: always
