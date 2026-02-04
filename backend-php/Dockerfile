@@ -10,9 +10,18 @@ RUN apt-get update && apt-get install -y \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy application files first
+COPY . /var/www/html/
+
 # Set document root to public folder
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf
+
+# Add ServerName to suppress warning
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Add Directory configuration for the new DocumentRoot
 RUN echo "<Directory /var/www/html/public>\n\
@@ -20,12 +29,6 @@ RUN echo "<Directory /var/www/html/public>\n\
     AllowOverride All\n\
     Require all granted\n\
 </Directory>" >> /etc/apache2/apache2.conf
-
-# Set working directory
-WORKDIR /var/www/html
-
-# Copy application files
-COPY . /var/www/html/
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html
