@@ -4,27 +4,29 @@ FROM php:8.2-apache
 RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     libssl-dev \
+    libpq-dev \
     git \
     unzip \
-    && docker-php-ext-install curl \
+    && docker-php-ext-install curl pdo pdo_pgsql \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
-WORKDIR /var/www/html
-
-# Copy application files first
-COPY . /var/www/html/
-
-# Set document root to public folder
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf
-
-# Add ServerName to suppress warning
+# Suppress ServerName warning
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# Add Directory configuration for the new DocumentRoot
-RUN echo "<Directory /var/www/html/public>\n\
+# Configure Apache DocumentRoot to public/ using the standard approach
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# Copy application files
+COPY . /var/www/html/
+
+# Ensure public directory exists (safety net)
+RUN ls -la /var/www/html/public/ && echo "DocumentRoot OK" || (echo "ERROR: public/ not found in build context" && exit 1)
+
+# Directory configuration for AllowOverride (needed for .htaccess)
+RUN echo "<Directory ${APACHE_DOCUMENT_ROOT}>\n\
     Options FollowSymLinks\n\
     AllowOverride All\n\
     Require all granted\n\
