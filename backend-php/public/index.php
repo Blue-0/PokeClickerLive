@@ -44,6 +44,10 @@ define('JWT_SECRET', getenv('JWT_SECRET') ?: 'pokeclicker_secret_change_in_produ
 try {
     $router = new Router();
 
+    // Dashboard (root)
+    $router->get('/', \App\Controllers\Admin\DashboardController::class, 'index');
+    $router->get('/admin', \App\Controllers\Admin\DashboardController::class, 'index');
+
     // Routes definition
     $router->get('/api/test', \App\Controllers\Api\TestController::class, 'ping');
 
