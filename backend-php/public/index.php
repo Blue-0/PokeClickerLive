@@ -27,13 +27,8 @@ use App\Utils\Router;
 use App\Utils\Env;
 
 // 2. Configuration Globale
-try {
-    // Load .env from project root (one level up from public, or same level as src parent)
-    Env::load(__DIR__ . '/../.env');
-} catch (Exception $e) {
-    // Should handle error gracefully or just let it die in dev
-    die($e->getMessage());
-}
+// Load .env if present (in containers, env vars are injected by the orchestrator)
+Env::load(__DIR__ . '/../.env');
 
 define('SUPABASE_URL', getenv('SUPABASE_URL'));
 define('SUPABASE_KEY', getenv('SUPABASE_KEY'));
