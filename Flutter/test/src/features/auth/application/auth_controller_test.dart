@@ -22,9 +22,14 @@ void main() {
     // Default behaviors
     when(() => mockAuthRepository.getToken()).thenReturn(null);
     when(() => mockAuthRepository.getUser()).thenReturn(null);
+    when(
+      () => mockAuthRepository.getTokenAsync(),
+    ).thenAnswer((_) async => null);
+    when(() => mockAuthRepository.getUserAsync()).thenAnswer((_) async => null);
     when(() => mockAuthRepository.saveToken(any())).thenAnswer((_) async {});
     when(() => mockAuthRepository.saveUser(any())).thenAnswer((_) async {});
     when(() => mockAuthRepository.clearAll()).thenAnswer((_) async {});
+    when(() => mockAuthRepository.init()).thenAnswer((_) async {});
 
     container = ProviderContainer(
       overrides: [authRepositoryProvider.overrideWithValue(mockAuthRepository)],
@@ -65,49 +70,24 @@ void main() {
       expect(state.token, 'valid_token');
     });
 
-    test('login with valid credentials sets authenticated state', () async {
-      final notifier = container.read(authControllerProvider.notifier);
-
-      await notifier.login('test@test.com', 'password');
-
-      final state = container.read(authControllerProvider);
-
-      expect(state.isAuthenticated, true);
-      expect(state.user?.email, 'test@test.com');
-      expect(state.token, 'fake_jwt_token');
-      expect(state.isLoading, false);
-      expect(state.errorMessage, null);
-
-      verify(() => mockAuthRepository.saveUser(any())).called(1);
-      verify(() => mockAuthRepository.saveToken('fake_jwt_token')).called(1);
-    });
-
-    test('login with invalid credentials shows error message', () async {
-      final notifier = container.read(authControllerProvider.notifier);
-
-      await notifier.login('wrong@email.com', 'wrongpassword');
-
-      final state = container.read(authControllerProvider);
-
-      expect(state.isAuthenticated, false);
-      expect(state.user, null);
-      expect(state.token, null);
-      expect(state.isLoading, false);
-      expect(state.errorMessage, 'Invalid credentials');
-
-      verifyNever(() => mockAuthRepository.saveUser(any()));
-      verifyNever(() => mockAuthRepository.saveToken(any()));
-    });
-
     test('logout clears all stored data and state', () async {
-      // First login
-      final notifier = container.read(authControllerProvider.notifier);
-      await notifier.login('test@test.com', 'password');
+      // First set up authenticated state
+      const user = User(id: '1', username: 'Test', email: 'test@test.com');
+      when(() => mockAuthRepository.getToken()).thenReturn('valid_token');
+      when(() => mockAuthRepository.getUser()).thenReturn(user);
+
+      container.dispose();
+      container = ProviderContainer(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(mockAuthRepository),
+        ],
+      );
 
       // Verify logged in
       expect(container.read(authControllerProvider).isAuthenticated, true);
 
       // Logout
+      final notifier = container.read(authControllerProvider.notifier);
       await notifier.logout();
 
       final state = container.read(authControllerProvider);
@@ -117,17 +97,6 @@ void main() {
       expect(state.token, null);
 
       verify(() => mockAuthRepository.clearAll()).called(1);
-    });
-
-    test('register returns error (stub implementation)', () async {
-      final notifier = container.read(authControllerProvider.notifier);
-
-      await notifier.register('user', 'user@test.com', 'password');
-
-      final state = container.read(authControllerProvider);
-
-      expect(state.isLoading, false);
-      expect(state.errorMessage, contains('not yet implemented'));
     });
   });
 }

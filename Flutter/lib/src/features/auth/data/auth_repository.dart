@@ -1,80 +1,81 @@
+import 'dart:convert';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../domain/user.dart';
 
 part 'auth_repository.g.dart';
 
 @Riverpod(keepAlive: true)
-AuthRepository authRepository(AuthRepositoryRef ref) {
-  return AuthRepository(Supabase.instance.client);
+AuthRepository authRepository(Ref ref) {
+  return AuthRepository();
 }
 
 class AuthRepository {
-  final SupabaseClient _supabase;
+  static const _tokenKey = 'auth_token';
+  static const _userKey = 'auth_user';
 
-  AuthRepository(this._supabase);
+  SharedPreferences? _prefs;
 
-  Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
-
-  User? get currentUser => _supabase.auth.currentUser;
-
-  Future<void> signIn({required String email, required String password}) async {
-    await _supabase.auth.signInWithPassword(email: email, password: password);
-    await _updateLocation();
+  Future<SharedPreferences> get _preferences async {
+    _prefs ??= await SharedPreferences.getInstance();
+    return _prefs!;
   }
 
-  Future<void> signUp({required String email, required String password}) async {
-    await _supabase.auth.signUp(email: email, password: password);
-    // Location update might fail if user is not immediately logged in (depends on email confirmation settings)
-    // but usually signUp automatically logs in if confirmation is off.
-    // We attempt it anyway.
-    if (_supabase.auth.currentUser != null) {
-      await _updateLocation();
-    }
+  /// Gets the stored JWT token synchronously (returns null if not yet loaded)
+  String? getToken() {
+    return _prefs?.getString(_tokenKey);
   }
 
-  Future<void> signOut() async {
-    await _supabase.auth.signOut();
+  /// Gets the stored JWT token asynchronously
+  Future<String?> getTokenAsync() async {
+    final prefs = await _preferences;
+    return prefs.getString(_tokenKey);
   }
 
-  Future<void> _updateLocation() async {
+  /// Saves the JWT token to local storage
+  Future<void> saveToken(String token) async {
+    final prefs = await _preferences;
+    await prefs.setString(_tokenKey, token);
+  }
+
+  /// Gets the stored user synchronously (returns null if not yet loaded)
+  User? getUser() {
+    final userJson = _prefs?.getString(_userKey);
+    if (userJson == null) return null;
     try {
-      bool serviceEnabled;
-      LocationPermission permission;
-
-      // Test if location services are enabled.
-      serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        // Location services are not enabled don't continue
-        // accessing the position and request users of the
-        // App to enable the location services.
-        return;
-      }
-
-      permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        return;
-      }
-
-      // When we reach here, permissions are granted and we can
-      // continue accessing the position of the device.
-      final position = await Geolocator.getCurrentPosition();
-
-      await _supabase.rpc('update_user_location', params: {
-        'p_latitude': position.latitude,
-        'p_longitude': position.longitude,
-      });
-
+      return User.fromJson(jsonDecode(userJson));
     } catch (e) {
-      // Fail silently for location updates to not block login
-      print('Failed to update location: $e');
+      return null;
     }
+  }
+
+  /// Gets the stored user asynchronously
+  Future<User?> getUserAsync() async {
+    final prefs = await _preferences;
+    final userJson = prefs.getString(_userKey);
+    if (userJson == null) return null;
+    try {
+      return User.fromJson(jsonDecode(userJson));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Saves the user to local storage
+  Future<void> saveUser(User user) async {
+    final prefs = await _preferences;
+    await prefs.setString(_userKey, jsonEncode(user.toJson()));
+  }
+
+  /// Clears all stored authentication data
+  Future<void> clearAll() async {
+    final prefs = await _preferences;
+    await prefs.remove(_tokenKey);
+    await prefs.remove(_userKey);
+  }
+
+  /// Initializes the repository by loading SharedPreferences
+  Future<void> init() async {
+    _prefs = await SharedPreferences.getInstance();
   }
 }

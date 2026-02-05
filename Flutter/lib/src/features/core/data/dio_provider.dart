@@ -10,9 +10,9 @@ String _getBaseUrl() {
   // TODO: Replace with production URL in release builds
   if (kDebugMode) {
     // Using specific host IP to match PHP server binding
-    return 'http://10.176.131.63:8080';
+    return 'http://pokeapi.bluedyso.fr';
   }
-  return 'https://api.pokeclickerlive.com'; // Production URL placeholder
+  return 'https://pokeapi.bluedyso.fr'; // Production URL placeholder
 }
 
 @Riverpod(keepAlive: true)

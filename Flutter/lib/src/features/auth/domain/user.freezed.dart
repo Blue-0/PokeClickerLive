@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$User {
 
- String get id; String get username; String get email;
+ dynamic get id;// API returns int, we'll convert to String
+ String get username; String get email; int get pokedollars;@JsonKey(name: 'lifetime_earnings') int get lifetimeEarnings;@JsonKey(name: 'total_clicks') int get totalClicks; double? get latitude; double? get longitude;@JsonKey(name: 'contact_person') String? get contactPerson;@JsonKey(name: 'profile_photo') String? get profilePhoto;@JsonKey(name: 'last_sync') String? get lastSync;@JsonKey(name: 'created_at') String? get createdAt;
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +29,16 @@ $UserCopyWith<User> get copyWith => _$UserCopyWithImpl<User>(this as User, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.email, email) || other.email == email));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&const DeepCollectionEquality().equals(other.id, id)&&(identical(other.username, username) || other.username == username)&&(identical(other.email, email) || other.email == email)&&(identical(other.pokedollars, pokedollars) || other.pokedollars == pokedollars)&&(identical(other.lifetimeEarnings, lifetimeEarnings) || other.lifetimeEarnings == lifetimeEarnings)&&(identical(other.totalClicks, totalClicks) || other.totalClicks == totalClicks)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.contactPerson, contactPerson) || other.contactPerson == contactPerson)&&(identical(other.profilePhoto, profilePhoto) || other.profilePhoto == profilePhoto)&&(identical(other.lastSync, lastSync) || other.lastSync == lastSync)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,username,email);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(id),username,email,pokedollars,lifetimeEarnings,totalClicks,latitude,longitude,contactPerson,profilePhoto,lastSync,createdAt);
 
 @override
 String toString() {
-  return 'User(id: $id, username: $username, email: $email)';
+  return 'User(id: $id, username: $username, email: $email, pokedollars: $pokedollars, lifetimeEarnings: $lifetimeEarnings, totalClicks: $totalClicks, latitude: $latitude, longitude: $longitude, contactPerson: $contactPerson, profilePhoto: $profilePhoto, lastSync: $lastSync, createdAt: $createdAt)';
 }
 
 
@@ -48,7 +49,7 @@ abstract mixin class $UserCopyWith<$Res>  {
   factory $UserCopyWith(User value, $Res Function(User) _then) = _$UserCopyWithImpl;
 @useResult
 $Res call({
- String id, String username, String email
+ dynamic id, String username, String email, int pokedollars,@JsonKey(name: 'lifetime_earnings') int lifetimeEarnings,@JsonKey(name: 'total_clicks') int totalClicks, double? latitude, double? longitude,@JsonKey(name: 'contact_person') String? contactPerson,@JsonKey(name: 'profile_photo') String? profilePhoto,@JsonKey(name: 'last_sync') String? lastSync,@JsonKey(name: 'created_at') String? createdAt
 });
 
 
@@ -65,12 +66,21 @@ class _$UserCopyWithImpl<$Res>
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? username = null,Object? email = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? username = null,Object? email = null,Object? pokedollars = null,Object? lifetimeEarnings = null,Object? totalClicks = null,Object? latitude = freezed,Object? longitude = freezed,Object? contactPerson = freezed,Object? profilePhoto = freezed,Object? lastSync = freezed,Object? createdAt = freezed,}) {
   return _then(_self.copyWith(
-id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as dynamic,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
-as String,
+as String,pokedollars: null == pokedollars ? _self.pokedollars : pokedollars // ignore: cast_nullable_to_non_nullable
+as int,lifetimeEarnings: null == lifetimeEarnings ? _self.lifetimeEarnings : lifetimeEarnings // ignore: cast_nullable_to_non_nullable
+as int,totalClicks: null == totalClicks ? _self.totalClicks : totalClicks // ignore: cast_nullable_to_non_nullable
+as int,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
+as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
+as double?,contactPerson: freezed == contactPerson ? _self.contactPerson : contactPerson // ignore: cast_nullable_to_non_nullable
+as String?,profilePhoto: freezed == profilePhoto ? _self.profilePhoto : profilePhoto // ignore: cast_nullable_to_non_nullable
+as String?,lastSync: freezed == lastSync ? _self.lastSync : lastSync // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -155,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String username,  String email)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( dynamic id,  String username,  String email,  int pokedollars, @JsonKey(name: 'lifetime_earnings')  int lifetimeEarnings, @JsonKey(name: 'total_clicks')  int totalClicks,  double? latitude,  double? longitude, @JsonKey(name: 'contact_person')  String? contactPerson, @JsonKey(name: 'profile_photo')  String? profilePhoto, @JsonKey(name: 'last_sync')  String? lastSync, @JsonKey(name: 'created_at')  String? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _User() when $default != null:
-return $default(_that.id,_that.username,_that.email);case _:
+return $default(_that.id,_that.username,_that.email,_that.pokedollars,_that.lifetimeEarnings,_that.totalClicks,_that.latitude,_that.longitude,_that.contactPerson,_that.profilePhoto,_that.lastSync,_that.createdAt);case _:
   return orElse();
 
 }
@@ -176,10 +186,10 @@ return $default(_that.id,_that.username,_that.email);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String username,  String email)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( dynamic id,  String username,  String email,  int pokedollars, @JsonKey(name: 'lifetime_earnings')  int lifetimeEarnings, @JsonKey(name: 'total_clicks')  int totalClicks,  double? latitude,  double? longitude, @JsonKey(name: 'contact_person')  String? contactPerson, @JsonKey(name: 'profile_photo')  String? profilePhoto, @JsonKey(name: 'last_sync')  String? lastSync, @JsonKey(name: 'created_at')  String? createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _User():
-return $default(_that.id,_that.username,_that.email);case _:
+return $default(_that.id,_that.username,_that.email,_that.pokedollars,_that.lifetimeEarnings,_that.totalClicks,_that.latitude,_that.longitude,_that.contactPerson,_that.profilePhoto,_that.lastSync,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -196,10 +206,10 @@ return $default(_that.id,_that.username,_that.email);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String username,  String email)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( dynamic id,  String username,  String email,  int pokedollars, @JsonKey(name: 'lifetime_earnings')  int lifetimeEarnings, @JsonKey(name: 'total_clicks')  int totalClicks,  double? latitude,  double? longitude, @JsonKey(name: 'contact_person')  String? contactPerson, @JsonKey(name: 'profile_photo')  String? profilePhoto, @JsonKey(name: 'last_sync')  String? lastSync, @JsonKey(name: 'created_at')  String? createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _User() when $default != null:
-return $default(_that.id,_that.username,_that.email);case _:
+return $default(_that.id,_that.username,_that.email,_that.pokedollars,_that.lifetimeEarnings,_that.totalClicks,_that.latitude,_that.longitude,_that.contactPerson,_that.profilePhoto,_that.lastSync,_that.createdAt);case _:
   return null;
 
 }
@@ -210,13 +220,23 @@ return $default(_that.id,_that.username,_that.email);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _User implements User {
-  const _User({required this.id, required this.username, required this.email});
+class _User extends User {
+  const _User({required this.id, required this.username, required this.email, this.pokedollars = 0, @JsonKey(name: 'lifetime_earnings') this.lifetimeEarnings = 0, @JsonKey(name: 'total_clicks') this.totalClicks = 0, this.latitude, this.longitude, @JsonKey(name: 'contact_person') this.contactPerson, @JsonKey(name: 'profile_photo') this.profilePhoto, @JsonKey(name: 'last_sync') this.lastSync, @JsonKey(name: 'created_at') this.createdAt}): super._();
   factory _User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
-@override final  String id;
+@override final  dynamic id;
+// API returns int, we'll convert to String
 @override final  String username;
 @override final  String email;
+@override@JsonKey() final  int pokedollars;
+@override@JsonKey(name: 'lifetime_earnings') final  int lifetimeEarnings;
+@override@JsonKey(name: 'total_clicks') final  int totalClicks;
+@override final  double? latitude;
+@override final  double? longitude;
+@override@JsonKey(name: 'contact_person') final  String? contactPerson;
+@override@JsonKey(name: 'profile_photo') final  String? profilePhoto;
+@override@JsonKey(name: 'last_sync') final  String? lastSync;
+@override@JsonKey(name: 'created_at') final  String? createdAt;
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
@@ -231,16 +251,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.email, email) || other.email == email));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&const DeepCollectionEquality().equals(other.id, id)&&(identical(other.username, username) || other.username == username)&&(identical(other.email, email) || other.email == email)&&(identical(other.pokedollars, pokedollars) || other.pokedollars == pokedollars)&&(identical(other.lifetimeEarnings, lifetimeEarnings) || other.lifetimeEarnings == lifetimeEarnings)&&(identical(other.totalClicks, totalClicks) || other.totalClicks == totalClicks)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.contactPerson, contactPerson) || other.contactPerson == contactPerson)&&(identical(other.profilePhoto, profilePhoto) || other.profilePhoto == profilePhoto)&&(identical(other.lastSync, lastSync) || other.lastSync == lastSync)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,username,email);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(id),username,email,pokedollars,lifetimeEarnings,totalClicks,latitude,longitude,contactPerson,profilePhoto,lastSync,createdAt);
 
 @override
 String toString() {
-  return 'User(id: $id, username: $username, email: $email)';
+  return 'User(id: $id, username: $username, email: $email, pokedollars: $pokedollars, lifetimeEarnings: $lifetimeEarnings, totalClicks: $totalClicks, latitude: $latitude, longitude: $longitude, contactPerson: $contactPerson, profilePhoto: $profilePhoto, lastSync: $lastSync, createdAt: $createdAt)';
 }
 
 
@@ -251,7 +271,7 @@ abstract mixin class _$UserCopyWith<$Res> implements $UserCopyWith<$Res> {
   factory _$UserCopyWith(_User value, $Res Function(_User) _then) = __$UserCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String username, String email
+ dynamic id, String username, String email, int pokedollars,@JsonKey(name: 'lifetime_earnings') int lifetimeEarnings,@JsonKey(name: 'total_clicks') int totalClicks, double? latitude, double? longitude,@JsonKey(name: 'contact_person') String? contactPerson,@JsonKey(name: 'profile_photo') String? profilePhoto,@JsonKey(name: 'last_sync') String? lastSync,@JsonKey(name: 'created_at') String? createdAt
 });
 
 
@@ -268,12 +288,21 @@ class __$UserCopyWithImpl<$Res>
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? username = null,Object? email = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? username = null,Object? email = null,Object? pokedollars = null,Object? lifetimeEarnings = null,Object? totalClicks = null,Object? latitude = freezed,Object? longitude = freezed,Object? contactPerson = freezed,Object? profilePhoto = freezed,Object? lastSync = freezed,Object? createdAt = freezed,}) {
   return _then(_User(
-id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as dynamic,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
-as String,
+as String,pokedollars: null == pokedollars ? _self.pokedollars : pokedollars // ignore: cast_nullable_to_non_nullable
+as int,lifetimeEarnings: null == lifetimeEarnings ? _self.lifetimeEarnings : lifetimeEarnings // ignore: cast_nullable_to_non_nullable
+as int,totalClicks: null == totalClicks ? _self.totalClicks : totalClicks // ignore: cast_nullable_to_non_nullable
+as int,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
+as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
+as double?,contactPerson: freezed == contactPerson ? _self.contactPerson : contactPerson // ignore: cast_nullable_to_non_nullable
+as String?,profilePhoto: freezed == profilePhoto ? _self.profilePhoto : profilePhoto // ignore: cast_nullable_to_non_nullable
+as String?,lastSync: freezed == lastSync ? _self.lastSync : lastSync // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

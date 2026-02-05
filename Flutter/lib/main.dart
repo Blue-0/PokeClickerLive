@@ -42,30 +42,12 @@ class MyApp extends ConsumerWidget {
           fontWeight: FontWeight.bold,
           letterSpacing: -0.25,
         ),
-        displayMedium: TextStyle(
-          fontSize: 45,
-          fontWeight: FontWeight.bold,
-        ),
-        displaySmall: TextStyle(
-          fontSize: 36,
-          fontWeight: FontWeight.bold,
-        ),
-        headlineLarge: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-        ),
-        headlineMedium: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w600,
-        ),
-        headlineSmall: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-        ),
-        titleLarge: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
-        ),
+        displayMedium: TextStyle(fontSize: 45, fontWeight: FontWeight.bold),
+        displaySmall: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+        headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+        headlineMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
+        headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+        titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
         titleMedium: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
@@ -79,11 +61,9 @@ class MyApp extends ConsumerWidget {
       ),
 
       // Card theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         clipBehavior: Clip.antiAlias,
       ),
 
@@ -123,9 +103,7 @@ class MyApp extends ConsumerWidget {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           textStyle: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -144,31 +122,19 @@ class MyApp extends ConsumerWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.grey.shade300,
-            width: 1,
-          ),
+          borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFFE63946),
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: Color(0xFFE63946), width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.red.shade400,
-            width: 1,
-          ),
+          borderSide: BorderSide(color: Colors.red.shade400, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.red.shade600,
-            width: 2,
-          ),
+          borderSide: BorderSide(color: Colors.red.shade600, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -198,9 +164,7 @@ class MyApp extends ConsumerWidget {
       // Snackbar theme
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         contentTextStyle: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -208,10 +172,8 @@ class MyApp extends ConsumerWidget {
       ),
 
       // Dialog theme
-      dialogTheme: DialogTheme(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
+      dialogTheme: DialogThemeData(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         elevation: 8,
       ),
     );

@@ -2,13 +2,20 @@
 namespace App\Controllers\Api;
 
 use App\Controllers\Controller;
+use App\Models\User;
+use App\Models\UserPokemon;
+use App\Models\TransactionLog;
 use App\Utils\JWT;
 
+/**
+ * Sync Controller
+ * Handles synchronization of game progress between client and server
+ */
 class SyncController extends Controller
 {
     /**
      * POST /api/user/sync
-     * Sync local progress with the cloud (Stub)
+     * Sync local progress with the cloud
      */
     public function sync(): void
     {
@@ -19,13 +26,138 @@ class SyncController extends Controller
             return;
         }
 
-        // $userId = $payload['user_id'];
-        // $input = $this->getJsonInput(); 
+        $userId = $payload['user_id'];
+        $input = $this->getJsonInput();
 
-        // Stub response
-        $this->success([
-            'server_timestamp' => time(),
-            'cloud_data' => null // No cloud data yet
-        ]);
+        // Debug: Log what we received
+        error_log("SYNC: userId = " . json_encode($userId));
+        error_log("SYNC: input = " . json_encode($input));
+
+        if (!$input || !isset($input['local_data'])) {
+            $this->error('Invalid sync data - missing local_data', 400);
+            return;
+        }
+
+        $localData = $input['local_data'];
+
+        try {
+            $updateResult = null;
+
+            // 2. Update user stats from clicker data
+            if (isset($localData['clicker'])) {
+                $clickerData = $localData['clicker'];
+                $updateResult = $this->updateUserStats($userId, $clickerData);
+                error_log("SYNC: updateUserStats result = " . json_encode($updateResult));
+            }
+
+            // 3. Sync Pokemon collection
+            if (isset($localData['collection']) && is_array($localData['collection'])) {
+                $this->syncPokemonCollection($userId, $localData['collection']);
+            }
+
+            // 4. Get current cloud data
+            $cloudData = $this->getCloudData($userId);
+
+            $this->success([
+                'server_timestamp' => time(),
+                'cloud_data' => $cloudData,
+                'debug' => [
+                    'userId' => $userId,
+                    'received_currency' => $localData['clicker']['currency'] ?? null,
+                    'update_result' => $updateResult
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("SYNC ERROR: " . $e->getMessage());
+            $this->error('Sync failed: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Update user stats (currency, clicks, etc.)
+     * Returns the update result for debugging
+     */
+    private function updateUserStats($userId, array $clickerData): ?array
+    {
+        $updateData = [
+            'last_sync' => date('c')
+        ];
+
+        // Update pokedollars
+        if (isset($clickerData['currency'])) {
+            $currency = (int) $clickerData['currency'];
+            $updateData['pokedollars'] = $currency;
+
+            // Update lifetime earnings if current is higher
+            $user = User::find($userId);
+            error_log("SYNC: Found user = " . json_encode($user ? 'yes' : 'no'));
+
+            if ($user && $currency > ($user['pokedollars'] ?? 0)) {
+                $difference = $currency - ($user['pokedollars'] ?? 0);
+                $updateData['lifetime_earnings'] = ($user['lifetime_earnings'] ?? 0) + $difference;
+
+                // Log the transaction
+                TransactionLog::log($userId, 'earn', $difference, 'Game sync earnings');
+            }
+        }
+
+        // Update total clicks (increment based on level as proxy)
+        if (isset($clickerData['level'])) {
+            $user = $user ?? User::find($userId);
+            if ($user) {
+                $currentClicks = $user['total_clicks'] ?? 0;
+                $newLevel = (int) $clickerData['level'];
+                $updateData['total_clicks'] = max($currentClicks, $newLevel);
+            }
+        }
+
+        error_log("SYNC: updateData = " . json_encode($updateData));
+
+        $result = User::update($userId, $updateData, true);
+        error_log("SYNC: User::update result = " . json_encode($result));
+
+        return $result;
+    }
+
+    /**
+     * Sync Pokemon collection
+     */
+    private function syncPokemonCollection($userId, array $collection): void
+    {
+        foreach ($collection as $pokemon) {
+            if (!isset($pokemon['id']))
+                continue;
+
+            $pokemonId = (int) $pokemon['id'];
+
+            // Check if user already has this Pokemon
+            $existing = UserPokemon::findEntry($userId, $pokemonId);
+
+            if (!$existing) {
+                // Add new Pokemon to collection
+                $result = UserPokemon::addPokemon($userId, $pokemonId);
+                error_log("SYNC: Added pokemon $pokemonId result = " . json_encode($result));
+            }
+        }
+    }
+
+    /**
+     * Get all cloud data for the user
+     */
+    private function getCloudData($userId): array
+    {
+        $user = User::find($userId);
+        $pokemon = UserPokemon::getByUserId($userId);
+
+        return [
+            'user' => $user ? [
+                'pokedollars' => $user['pokedollars'] ?? 0,
+                'lifetime_earnings' => $user['lifetime_earnings'] ?? 0,
+                'total_clicks' => $user['total_clicks'] ?? 0,
+            ] : null,
+            'pokemon' => $pokemon,
+            'last_sync' => $user['last_sync'] ?? null
+        ];
     }
 }

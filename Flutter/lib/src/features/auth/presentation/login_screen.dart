@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../data/auth_repository.dart';
+import '../application/auth_controller.dart';
 import 'widgets/custom_text_field.dart';
 import 'widgets/password_strength_indicator.dart';
 import 'utils/validators.dart';
@@ -94,11 +93,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   bool _validateSignupForm() {
     setState(() {
-      _signupUsernameError =
-          Validators.username(_signupUsernameController.text);
+      _signupUsernameError = Validators.username(
+        _signupUsernameController.text,
+      );
       _signupEmailError = Validators.email(_signupEmailController.text);
-      _signupPasswordError =
-          Validators.password(_signupPasswordController.text);
+      _signupPasswordError = Validators.password(
+        _signupPasswordController.text,
+      );
       _signupConfirmPasswordError = Validators.confirmPassword(
         _signupConfirmPasswordController.text,
         _signupPasswordController.text,
@@ -116,12 +117,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
     setState(() => _isLoading = true);
     try {
-      await ref.read(authRepositoryProvider).signIn(
-            email: _loginEmailController.text.trim(),
-            password: _loginPasswordController.text,
+      await ref
+          .read(authControllerProvider.notifier)
+          .login(
+            _loginEmailController.text.trim(),
+            _loginPasswordController.text,
           );
+
       if (mounted) {
-        // Router will redirect automatically based on auth state
+        final authState = ref.read(authControllerProvider);
+        if (authState.isAuthenticated) {
+          // Succès - GoRouter redirigera automatiquement vers la page d'accueil
+          _showSuccessSnackBar('Connexion réussie !');
+        } else if (authState.errorMessage != null) {
+          _showErrorSnackBar(
+            'Connexion échouée: ${_formatError(authState.errorMessage!)}',
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -137,24 +149,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
     setState(() => _isLoading = true);
     try {
-      await ref.read(authRepositoryProvider).signUp(
-            email: _signupEmailController.text.trim(),
-            password: _signupPasswordController.text,
+      await ref
+          .read(authControllerProvider.notifier)
+          .register(
+            _signupUsernameController.text.trim(),
+            _signupEmailController.text.trim(),
+            _signupPasswordController.text,
           );
+
       if (mounted) {
-        _showSuccessSnackBar('Compte créé avec succès! Veuillez vous connecter.');
-        // Switch to login tab
-        _tabController.animateTo(0);
-        // Clear signup form
-        _signupUsernameController.clear();
-        _signupEmailController.clear();
-        _signupPasswordController.clear();
-        _signupConfirmPasswordController.clear();
+        final authState = ref.read(authControllerProvider);
+        if (authState.isAuthenticated) {
+          // Succès - L'utilisateur est automatiquement connecté après inscription
+          // GoRouter redirigera vers la page d'accueil
+          _showSuccessSnackBar(
+            'Compte créé ! Bienvenue ${authState.user?.username ?? ''} !',
+          );
+        } else if (authState.errorMessage != null) {
+          _showErrorSnackBar(
+            'Inscription échouée: ${_formatError(authState.errorMessage!)}',
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         _showErrorSnackBar(
-            'Inscription échouée: ${_formatError(e.toString())}');
+          'Inscription échouée: ${_formatError(e.toString())}',
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -257,7 +278,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             // Tabs
                             Container(
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.surfaceContainerHighest,
+                                color:
+                                    theme.colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: TabBar(
@@ -496,7 +518,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               ),
               onPressed: () {
                 setState(
-                    () => _obscureSignupPassword = !_obscureSignupPassword);
+                  () => _obscureSignupPassword = !_obscureSignupPassword,
+                );
               },
             ),
           ),
@@ -523,8 +546,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     : Icons.visibility_off_outlined,
               ),
               onPressed: () {
-                setState(() =>
-                    _obscureConfirmPassword = !_obscureConfirmPassword);
+                setState(
+                  () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                );
               },
             ),
           ),
