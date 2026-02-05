@@ -6,7 +6,8 @@ class Env
     public static function load($path)
     {
         if (!file_exists($path)) {
-            throw new \Exception(".env file not found at: " . $path);
+            // In container environments (Dokploy), env vars are injected directly
+            return;
         }
 
         $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
