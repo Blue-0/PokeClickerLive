@@ -39,6 +39,8 @@ class SyncController extends Controller
         }
 
         $localData = $input['local_data'];
+        $lat = isset($input['latitude']) ? (float) $input['latitude'] : null;
+        $lng = isset($input['longitude']) ? (float) $input['longitude'] : null;
 
         try {
             $updateResult = null;
@@ -46,7 +48,7 @@ class SyncController extends Controller
             // 2. Update user stats from clicker data
             if (isset($localData['clicker'])) {
                 $clickerData = $localData['clicker'];
-                $updateResult = $this->updateUserStats($userId, $clickerData);
+                $updateResult = $this->updateUserStats($userId, $clickerData, $lat, $lng);
                 error_log("SYNC: updateUserStats result = " . json_encode($updateResult));
             }
 
@@ -64,6 +66,8 @@ class SyncController extends Controller
                 'debug' => [
                     'userId' => $userId,
                     'received_currency' => $localData['clicker']['currency'] ?? null,
+                    'received_lat' => $lat,
+                    'received_lng' => $lng,
                     'update_result' => $updateResult
                 ]
             ]);
@@ -78,11 +82,17 @@ class SyncController extends Controller
      * Update user stats (currency, clicks, etc.)
      * Returns the update result for debugging
      */
-    private function updateUserStats($userId, array $clickerData): ?array
+    private function updateUserStats($userId, array $clickerData, ?float $lat = null, ?float $lng = null): ?array
     {
         $updateData = [
             'last_sync' => date('c')
         ];
+
+        // Add GPS if provided
+        if ($lat !== null && $lng !== null) {
+            $updateData['latitude'] = $lat;
+            $updateData['longitude'] = $lng;
+        }
 
         // Update pokedollars
         if (isset($clickerData['currency'])) {
@@ -95,10 +105,12 @@ class SyncController extends Controller
 
             if ($user && $currency > ($user['pokedollars'] ?? 0)) {
                 $difference = $currency - ($user['pokedollars'] ?? 0);
-                $updateData['lifetime_earnings'] = ($user['lifetime_earnings'] ?? 0) + $difference;
+                if ($difference > 0) {
+                    $updateData['lifetime_earnings'] = ($user['lifetime_earnings'] ?? 0) + $difference;
 
-                // Log the transaction
-                TransactionLog::log($userId, 'earn', $difference, 'Game sync earnings');
+                    // Log the transaction with GPS
+                    TransactionLog::log($userId, 'earn', $difference, 'Game sync earnings', $lat, $lng);
+                }
             }
         }
 
@@ -126,10 +138,15 @@ class SyncController extends Controller
     private function syncPokemonCollection($userId, array $collection): void
     {
         foreach ($collection as $pokemon) {
-            if (!isset($pokemon['id']))
-                continue;
+            // Check for pokemonId first (Flutter model), fallback to id if not present
+            $pId = $pokemon['pokemonId'] ?? $pokemon['id'] ?? null;
 
-            $pokemonId = (int) $pokemon['id'];
+            if (!$pId) {
+                error_log("SYNC: Skipping pokemon with no ID: " . json_encode($pokemon));
+                continue;
+            }
+
+            $pokemonId = (int) $pId;
 
             // Check if user already has this Pokemon
             $existing = UserPokemon::findEntry($userId, $pokemonId);
