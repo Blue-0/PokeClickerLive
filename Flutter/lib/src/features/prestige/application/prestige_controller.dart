@@ -1,6 +1,7 @@
 import 'package:pokeclickerlive/src/features/clicker/application/clicker_controller.dart';
 import 'package:pokeclickerlive/src/features/prestige/data/prestige_repository.dart';
 import 'package:pokeclickerlive/src/features/prestige/domain/prestige_data.dart';
+import 'package:pokeclickerlive/src/features/shop/application/inventory_controller.dart';
 import 'package:pokeclickerlive/src/features/world/application/zone_controller.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -35,6 +36,7 @@ class PrestigeController extends _$PrestigeController {
     // Reset World State
     ref.read(zoneControllerProvider.notifier).resetToStart();
 
-    // TODO: Reset Inventory if needed in AC
+    // Reset Inventory
+    ref.read(inventoryControllerProvider.notifier).resetForPrestige();
   }
 }

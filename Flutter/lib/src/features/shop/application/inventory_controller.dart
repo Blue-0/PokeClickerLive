@@ -25,4 +25,9 @@ class InventoryController extends _$InventoryController {
   int getItemQuantity(String itemId) {
     return state.items[itemId] ?? 0;
   }
+
+  void resetForPrestige() {
+    state = const Inventory();
+    _box.put('current', state);
+  }
 }

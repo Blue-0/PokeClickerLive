@@ -41,11 +41,15 @@ class ClickerController extends _$ClickerController {
     });
 
     // Schedule loading after build completes to avoid blocking
-    Future.microtask(() => _loadNewPokemon());
+    Future.microtask(() {
+      if (!ref.mounted) return;
+      _loadNewPokemon();
+    });
     return const ClickerState(isLoading: true);
   }
 
   Future<void> _loadNewPokemon({bool forceBoss = false}) async {
+    if (!ref.mounted) return;
     state = state.copyWith(
       isLoading: true,
       isBoss: false,
@@ -61,23 +65,6 @@ class ClickerController extends _$ClickerController {
     final currentZone = zoneState.currentZone;
     final kills = zoneState.killCounts[currentZone.id] ?? 0;
     final target = zoneController.getKillTargetForCurrentZone() ?? 10;
-
-    // AUTO-TRANSITION TO BOSS ZONE
-    if (!forceBoss && currentZone.type == ZoneType.route && kills >= target) {
-      final bossZone = zoneState.allZones
-          .where(
-            (z) =>
-                z.type == ZoneType.boss &&
-                z.unlockCondition?.sourceZoneId == currentZone.id &&
-                z.isUnlocked,
-          )
-          .firstOrNull;
-
-      if (bossZone != null) {
-        zoneController.changeZone(bossZone);
-        return; // Listener handles the reload
-      }
-    }
 
     int? pokemonId;
     bool spawningBoss = false;
@@ -101,6 +88,7 @@ class ClickerController extends _$ClickerController {
 
     // If zone has specific Pokémon, use those; otherwise fall back to random Sinnoh
     final result = await repo.getPokemon(pokemonId);
+    if (!ref.mounted) return;
 
     result.fold(
       (failure) {
@@ -211,6 +199,10 @@ class ClickerController extends _$ClickerController {
   void _startBossTimer() {
     _bossTimer?.cancel();
     _bossTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!ref.mounted) {
+        timer.cancel();
+        return;
+      }
       if (state.remainingBossTime <= 0) {
         timer.cancel();
         _onBossTimeout();
@@ -233,6 +225,7 @@ class ClickerController extends _$ClickerController {
 
   /// Called by auto-clicker (DPS)
   void _autoTick() {
+    if (!ref.mounted) return;
     final zoneState = ref.read(zoneControllerProvider);
     // Peace zones (towns) should not have auto-combat
     if (zoneState.currentZone.type == ZoneType.town) return;

@@ -4,6 +4,8 @@ import '../data/auth_repository.dart';
 import '../domain/auth_state.dart';
 import '../domain/user.dart';
 import '../../core/data/dio_provider.dart';
+import '../../collection/domain/user_pokemon.dart';
+import '../../shop/domain/inventory.dart';
 
 part 'auth_controller.g.dart';
 
@@ -22,18 +24,25 @@ class AuthController extends _$AuthController {
   /// Called on login (when the user changes) and on logout, so that
   /// no player ever sees another player's cached Pokémon or progress.
   Future<void> _clearLocalHiveData() async {
-    const boxes = [
-      'user_pokemon',
-      'team',
-      'inventory',
-      'upgrade_levels',
-      'prestige',
-      'zone_data',
-    ];
-    for (final name in boxes) {
-      if (Hive.isBoxOpen(name)) {
-        await Hive.box(name).clear();
-      }
+    if (Hive.isBoxOpen('user_pokemon')) {
+      await Hive.box<UserPokemon>('user_pokemon').clear();
+    }
+    if (Hive.isBoxOpen('team')) {
+      await Hive.box<List<String>>('team').clear();
+    }
+    if (Hive.isBoxOpen('inventory')) {
+      await Hive.box<Inventory>('inventory').clear();
+    }
+    if (Hive.isBoxOpen('upgrade_levels')) {
+      await Hive.box<Map>('upgrade_levels').clear();
+    }
+    if (Hive.isBoxOpen('prestige')) {
+      await Hive.box<Map<dynamic, dynamic>>('prestige').clear();
+    }
+    if (Hive.isBoxOpen('zone_data')) {
+      try {
+        await Hive.box('zone_data').clear();
+      } catch (_) {}
     }
   }
 

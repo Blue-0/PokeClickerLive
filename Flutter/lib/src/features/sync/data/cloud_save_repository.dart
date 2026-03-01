@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:geolocator/geolocator.dart';
@@ -35,11 +36,13 @@ class CloudSaveRepository {
               permission == LocationPermission.always) {
             try {
               position = await Geolocator.getCurrentPosition(
-                desiredAccuracy: LocationAccuracy.medium,
-                timeLimit: const Duration(seconds: 5),
+                locationSettings: const LocationSettings(
+                  accuracy: LocationAccuracy.medium,
+                  timeLimit: Duration(seconds: 5),
+                ),
               );
             } catch (e) {
-              print(
+              debugPrint(
                 'CloudSaveRepository: getCurrentPosition failed, trying last known ($e)',
               );
               position = await Geolocator.getLastKnownPosition();
@@ -48,20 +51,20 @@ class CloudSaveRepository {
         }
       } catch (e) {
         // Ignore location errors
-        print('CloudSaveRepository: Location error: $e');
+        debugPrint('CloudSaveRepository: Location error: $e');
       }
 
       final dio = _ref.read(dioProvider);
       final data = {'last_sync': lastSync, 'local_data': localData};
 
       if (position != null) {
-        print(
+        debugPrint(
           'CloudSaveRepository: Sending coordinates: ${position.latitude}, ${position.longitude}',
         );
         data['latitude'] = position.latitude;
         data['longitude'] = position.longitude;
       } else {
-        print('CloudSaveRepository: Sending sync without coordinates');
+        debugPrint('CloudSaveRepository: Sending sync without coordinates');
       }
 
       final response = await dio.post('/api/user/sync', data: data);
