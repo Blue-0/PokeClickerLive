@@ -90,6 +90,16 @@ class Controller
                . '</body></html>';
             exit;
         }
+
+        // Ouvrir une session et mémoriser l'authentification admin.
+        // Les endpoints AJAX (/admin/api/*) pourront ainsi vérifier la session
+        // via le cookie envoyé automatiquement par fetch({ credentials: 'include' }),
+        // sans avoir à retransmettre les headers Basic Auth à chaque requête.
+        if (session_status() === PHP_SESSION_NONE) {
+            session_name('admin_session');
+            session_start();
+        }
+        $_SESSION['admin_authenticated'] = true;
     }
 
     /**

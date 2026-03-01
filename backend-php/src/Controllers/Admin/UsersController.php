@@ -8,10 +8,25 @@ class UsersController extends Controller
 {
     /**
      * Vérifie l'authentification admin et envoie une réponse JSON 401 si refusé.
-     * Utilisé pour les endpoints AJAX/API.
+     * Utilisé pour les endpoints AJAX/API (/admin/api/*).
+     *
+     * Priorité :
+     *  1. Cookie de session créé par requireAdminBasicAuth() (navigation HTML initiale).
+     *     fetch({ credentials: 'include' }) envoie ce cookie automatiquement.
+     *  2. Header Authorization: Basic (client API ou premier appel direct).
      */
     private function requireAdminJson(): void
     {
+        // ── 1. Vérification par session ───────────────────────────────────
+        if (session_status() === PHP_SESSION_NONE) {
+            session_name('admin_session');
+            session_start();
+        }
+        if (!empty($_SESSION['admin_authenticated'])) {
+            return;
+        }
+
+        // ── 2. Vérification par header Basic Auth (fallback) ─────────────
         $authUser     = $_SERVER['PHP_AUTH_USER'] ?? '';
         $authPass     = $_SERVER['PHP_AUTH_PW']   ?? '';
         $expectedUser = getenv('ADMIN_USER')          ?: 'admin';
@@ -28,6 +43,9 @@ class UsersController extends Controller
             echo json_encode(['error' => 'Non autorisé']);
             exit;
         }
+
+        // Mémoriser pour les prochains appels de cette session
+        $_SESSION['admin_authenticated'] = true;
     }
 
     /**
