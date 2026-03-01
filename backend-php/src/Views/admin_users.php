@@ -17,6 +17,9 @@
         /* ── Focus visible (RGAA 10.7) ───────────────────────────────────── */
         :focus-visible { outline: 3px solid #005fcc; outline-offset: 3px; }
 
+        /* ── Garantir que hidden fonctionne même avec display: flex/grid ── */
+        [hidden] { display: none !important; }
+
         /* ── Accessibilité uniquement ────────────────────────────────────── */
         .sr-only {
             position: absolute; width: 1px; height: 1px;
@@ -379,7 +382,7 @@
         function esc(str) {
             const d = document.createElement('div');
             d.textContent = String(str ?? '');
-            return d.innerHTML;
+            return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
 
         function fmt(n) {
