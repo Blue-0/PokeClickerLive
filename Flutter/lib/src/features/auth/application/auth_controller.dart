@@ -97,6 +97,15 @@ class AuthController extends _$AuthController {
         final user = User.fromJson(Map<String, dynamic>.from(userData));
 
         final repo = ref.read(authRepositoryProvider);
+
+        // If a different user was previously stored locally, wipe their data
+        // before writing the new session so collections never get mixed.
+        final previousUser = repo.getUser();
+        if (previousUser != null &&
+            previousUser.id.toString() != user.id.toString()) {
+          await _clearLocalHiveData();
+        }
+
         await repo.saveUser(user);
         await repo.saveToken(token);
 
