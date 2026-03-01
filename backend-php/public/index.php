@@ -59,9 +59,16 @@ try {
     $router->post('/api/pokemon/catch', \App\Controllers\Api\PokemonApiController::class, 'catch');
     $router->get('/api/user/{id}/pokemon', \App\Controllers\Api\PokemonApiController::class, 'userPokemon');
 
-    // Admin routes
+    // Admin routes – Pokémon
     $router->get('/admin/pokemon', \App\Controllers\Admin\PokemonController::class, 'index');
     $router->post('/admin/pokemon', \App\Controllers\Admin\PokemonController::class, 'store');
+
+    // Admin routes – Utilisateurs (page HTML + API temps réel)
+    $router->get('/admin/users', \App\Controllers\Admin\UsersController::class, 'index');
+    $router->get('/admin/api/users', \App\Controllers\Admin\UsersController::class, 'apiUsers');
+    $router->get('/admin/api/users/{id}/inventory', \App\Controllers\Admin\UsersController::class, 'apiInventory');
+    $router->post('/admin/api/users/{id}/stats', \App\Controllers\Admin\UsersController::class, 'updateStats');
+    $router->post('/admin/api/users/{id}/inventory', \App\Controllers\Admin\UsersController::class, 'updateInventory');
 
     $router->dispatch();
 } catch (Exception $e) {

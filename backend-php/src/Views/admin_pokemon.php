@@ -127,6 +127,25 @@
         .badge-Uncommon  { background: #c8e6c9; color: #1b5e20; }
         .badge-Common    { background: #eee;    color: #333;    }
 
+        /* ── Onglets de navigation admin ─────────────────────────────────── */
+        .admin-tabs {
+            display: flex; gap: 4px; margin: 12px 0 20px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .admin-tabs a {
+            padding: 8px 18px; border-radius: 6px 6px 0 0;
+            text-decoration: none; font-weight: 500; font-size: 14px;
+            color: #555; background: #f0f0f0;
+            border: 1px solid #dee2e6; border-bottom: none;
+            transition: background .15s;
+        }
+        .admin-tabs a:hover { background: #e2e6ea; color: #333; }
+        .admin-tabs a.active {
+            background: #fff; color: #007bff;
+            border-color: #dee2e6; border-bottom-color: #fff;
+            margin-bottom: -2px;
+        }
+
         /* ── Responsive : tablette (≤ 768 px) ───────────────────────────── */
         @media (max-width: 768px) {
             body { padding: 12px; }
@@ -157,6 +176,10 @@
             <span aria-current="page">Gestion Pokémon</span>
         </nav>
         <h1>Administration – Sinnoh Clicker</h1>
+        <nav class="admin-tabs" aria-label="Sections admin">
+            <a href="/admin/pokemon" class="active" aria-current="page">&#127918; Pok&eacute;mon</a>
+            <a href="/admin/users">&#128101; Utilisateurs</a>
+        </nav>
     </header>
 
     <main id="main-content">
