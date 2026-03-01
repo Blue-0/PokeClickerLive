@@ -1,3 +1,4 @@
+import 'package:hive/hive.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../data/auth_repository.dart';
 import '../domain/auth_state.dart';
@@ -15,6 +16,25 @@ class AuthController extends _$AuthController {
     final token = repo.getToken();
 
     return AuthState(user: user, token: token);
+  }
+
+  /// Clears all Hive boxes that contain per-user local game data.
+  /// Called on login (when the user changes) and on logout, so that
+  /// no player ever sees another player's cached Pokémon or progress.
+  Future<void> _clearLocalHiveData() async {
+    const boxes = [
+      'user_pokemon',
+      'team',
+      'inventory',
+      'upgrade_levels',
+      'prestige',
+      'zone_data',
+    ];
+    for (final name in boxes) {
+      if (Hive.isBoxOpen(name)) {
+        await Hive.box(name).clear();
+      }
+    }
   }
 
   /// Authenticates user with email and password.
@@ -35,6 +55,15 @@ class AuthController extends _$AuthController {
         final user = User.fromJson(Map<String, dynamic>.from(userData));
 
         final repo = ref.read(authRepositoryProvider);
+
+        // If a different user was previously stored locally, wipe their data
+        // before writing the new session so collections never get mixed.
+        final previousUser = repo.getUser();
+        if (previousUser != null &&
+            previousUser.id.toString() != user.id.toString()) {
+          await _clearLocalHiveData();
+        }
+
         await repo.saveUser(user);
         await repo.saveToken(token);
 
@@ -68,6 +97,15 @@ class AuthController extends _$AuthController {
         final user = User.fromJson(Map<String, dynamic>.from(userData));
 
         final repo = ref.read(authRepositoryProvider);
+
+        // If a different user was previously stored locally, wipe their data
+        // before writing the new session so collections never get mixed.
+        final previousUser = repo.getUser();
+        if (previousUser != null &&
+            previousUser.id.toString() != user.id.toString()) {
+          await _clearLocalHiveData();
+        }
+
         await repo.saveUser(user);
         await repo.saveToken(token);
 
@@ -85,7 +123,10 @@ class AuthController extends _$AuthController {
 
   Future<void> logout() async {
     final repo = ref.read(authRepositoryProvider);
+    // Clear credentials first, then wipe all local game data so the next
+    // user who logs in on this device starts with a clean slate.
     await repo.clearAll();
+    await _clearLocalHiveData();
     state = const AuthState();
   }
 

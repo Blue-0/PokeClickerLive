@@ -8,6 +8,9 @@ class PokemonController extends Controller
 {
     public function index()
     {
+        // Protect this page: only authenticated admins may access Pokémon management.
+        $this->requireAdminBasicAuth();
+
         $supabase = Supabase::getInstance();
         $result = $supabase->from('ref_pokemon', '*');
 
@@ -24,6 +27,9 @@ class PokemonController extends Controller
 
     public function store()
     {
+        // Protect this action: only authenticated admins may create Pokémon entries.
+        $this->requireAdminBasicAuth();
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $name = $_POST['name'] ?? '';
             $base_cost = (int)($_POST['base_cost'] ?? 0);

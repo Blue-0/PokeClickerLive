@@ -33,6 +33,7 @@ Env::load(__DIR__ . '/../.env');
 define('SUPABASE_URL', getenv('SUPABASE_URL'));
 define('SUPABASE_KEY', getenv('SUPABASE_KEY'));
 define('SUPABASE_SERVICE_KEY', getenv('SUPABASE_SERVICE_KEY'));
+// JWT_SECRET must be set in the environment (.env) – never rely on the fallback in production
 define('JWT_SECRET', getenv('JWT_SECRET') ?: 'pokeclicker_secret_change_in_production');
 
 // 3. Lancement du Routeur

@@ -78,11 +78,12 @@ class AuthController extends Controller
 
         $user = $result['data'];
 
-        // Generate JWT token
+        // Generate JWT token – role is included so API guards can authorise admin actions
         $token = JWT::encode([
-            'user_id' => $user['id'],
+            'user_id'  => $user['id'],
             'username' => $user['username'],
-            'email' => $user['email']
+            'email'    => $user['email'],
+            'role'     => $user['role'] ?? 'player',
         ]);
 
         // Log registration
@@ -129,11 +130,12 @@ class AuthController extends Controller
             return;
         }
 
-        // Generate JWT token
+        // Generate JWT token – role is included so API guards can authorise admin actions
         $token = JWT::encode([
-            'user_id' => $user['id'],
+            'user_id'  => $user['id'],
             'username' => $user['username'],
-            'email' => $user['email']
+            'email'    => $user['email'],
+            'role'     => $user['role'] ?? 'player',
         ]);
 
         // Log successful login

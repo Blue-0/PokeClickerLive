@@ -120,7 +120,8 @@ class PokemonApiController extends Controller
 
     /**
      * GET /api/user/{id}/pokemon
-     * Get all Pokémon owned by a user
+     * Get all Pokémon owned by the authenticated user.
+     * A user can only access their own collection (JWT user_id must match {id}).
      */
     public function userPokemon(string $userId = ''): void
     {
@@ -128,6 +129,22 @@ class PokemonApiController extends Controller
             $this->error('User ID required', 400);
             return;
         }
+
+        // Auth check: valid JWT required
+        $payload = JWT::validateFromHeader();
+        if (!$payload) {
+            $this->error('Unauthorized', 401);
+            return;
+        }
+
+        // Ownership check: the authenticated user may only read their own collection.
+        // Use loose comparison because the URL parameter is a string and the JWT
+        // user_id may be an integer depending on the DB driver.
+        if ((string) $payload['user_id'] !== (string) $userId) {
+            $this->error('Forbidden – you can only access your own collection', 403);
+            return;
+        }
+
         $entries = UserPokemon::getByUserId($userId);
 
         // Enrich with Pokémon data
