@@ -60,21 +60,17 @@ class SyncController extends Controller
             // 4. Get current cloud data
             $cloudData = $this->getCloudData($userId);
 
+            // Debug info is intentionally kept server-side (error_log) only,
+            // never exposed to the client response.
             $this->success([
                 'server_timestamp' => time(),
-                'cloud_data' => $cloudData,
-                'debug' => [
-                    'userId' => $userId,
-                    'received_currency' => $localData['clicker']['currency'] ?? null,
-                    'received_lat' => $lat,
-                    'received_lng' => $lng,
-                    'update_result' => $updateResult
-                ]
+                'cloud_data'       => $cloudData,
             ]);
 
         } catch (\Exception $e) {
             error_log("SYNC ERROR: " . $e->getMessage());
-            $this->error('Sync failed: ' . $e->getMessage(), 500);
+            // Do not expose internal error details to the client
+            $this->error('Sync failed', 500);
         }
     }
 

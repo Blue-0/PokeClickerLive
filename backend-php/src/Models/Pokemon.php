@@ -111,7 +111,7 @@ class Pokemon extends Model
         curl_setopt($ch, CURLOPT_URL, self::$apiUrl . $id);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch, CURLOPT_USERAGENT, 'PokeClicker/1.0');
 
         $response = curl_exec($ch);

@@ -57,6 +57,7 @@ class User extends Model
             'username' => $username,
             'email' => $email,
             'password_hash' => $hashedPassword,
+            'role' => 'player',          // Default role – can be promoted to 'admin' in DB
             'pokedollars' => 0,
             'lifetime_earnings' => 0,
             'total_clicks' => 0,

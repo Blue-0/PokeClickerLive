@@ -8,6 +8,9 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // Protect this page: only authenticated admins may access the dashboard.
+        $this->requireAdminBasicAuth();
+
         $supabase = Supabase::getInstance();
 
         // Gather stats from Supabase
