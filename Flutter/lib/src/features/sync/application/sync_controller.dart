@@ -105,6 +105,11 @@ class SyncController extends _$SyncController {
   /// default (empty) state. Called on logout and when switching accounts so
   /// the previous user's in-memory data is never shown to the next user.
   void resetGameControllers() {
+    // Cancel the periodic sync timer so stale data is never pushed while
+    // controllers are in their default/empty state.
+    _syncTimer?.cancel();
+    _syncTimer = null;
+
     ref.invalidate(clickerControllerProvider);
     ref.invalidate(prestigeControllerProvider);
     ref.invalidate(shopControllerProvider);
@@ -117,6 +122,8 @@ class SyncController extends _$SyncController {
 
   /// Fetches cloud save data from the server and restores all game controllers.
   /// Called once after login so the player gets their progress back immediately.
+  /// After a successful restore, an immediate sync is scheduled so the current
+  /// state is saved to the server without waiting for the 60-second timer.
   Future<void> loadAndRestore() async {
     final authRepo = ref.read(authRepositoryProvider);
     if (authRepo.getToken() == null) return;
@@ -137,6 +144,9 @@ class SyncController extends _$SyncController {
         state = state.copyWith(isSyncing: false, consecutiveFailures: 0);
         // Ensure the periodic sync timer is running after a successful restore
         _startSyncTimer();
+        // Push current state to the server immediately so progress is saved
+        // without having to wait for the first 60-second timer tick.
+        Future.microtask(() => sync());
       },
     );
   }

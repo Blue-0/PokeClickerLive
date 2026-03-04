@@ -65,6 +65,7 @@ class SyncController extends Controller
             $this->success([
                 'server_timestamp' => time(),
                 'cloud_data'       => $cloudData,
+                'saved'            => $updateResult !== null,
             ]);
 
         } catch (\Exception $e) {
@@ -98,11 +99,22 @@ class SyncController extends Controller
     }
 
     /**
-     * Update user stats (currency, clicks, etc.) and persist full game state
-     * Returns the update result for debugging
+     * Update user stats (currency, clicks, etc.) and persist full game state.
+     *
+     * Uses a two-phase save strategy:
+     *   Phase 1 – basic stats (pokedollars, clicks, location, last_sync).
+     *             These columns always exist and the update always succeeds.
+     *   Phase 2 – game_state (full JSON snapshot).
+     *             Saved in a separate call so that if the column is missing
+     *             or the JSONB payload is rejected, phase-1 data is preserved.
+     *
+     * Returns the phase-1 update result (or phase-2 if both succeed).
      */
     private function updateUserStats($userId, array $clickerData, ?float $lat = null, ?float $lng = null, array $localData = []): ?array
     {
+        // ------------------------------------------------------------------
+        // Phase 1 – basic stats (always-safe columns)
+        // ------------------------------------------------------------------
         $updateData = [
             'last_sync' => date('c')
         ];
@@ -143,14 +155,17 @@ class SyncController extends Controller
             }
         }
 
-        // Persist full game state for cloud restore.
-        // Only save if the state is non-trivial (player has made real progress)
-        // to avoid overwriting a good save with empty defaults after login.
+        error_log("SYNC: phase1 updateData = " . json_encode($updateData));
+
+        $result = User::update($userId, $updateData, true);
+        error_log("SYNC: phase1 result = " . json_encode($result));
+
+        // ------------------------------------------------------------------
+        // Phase 2 – game_state (separate call; may fail if column is absent)
+        // ------------------------------------------------------------------
         $currency = (int) ($clickerData['currency'] ?? 0);
         $level    = (int) ($clickerData['level'] ?? 1);
         $hasCollection = !empty($localData['collection']);
-        // Shop upgrades always exist at level 0; only count as progress when
-        // at least one upgrade has been purchased (level > 0).
         $hasShop = false;
         if (!empty($localData['shop']) && is_array($localData['shop'])) {
             foreach ($localData['shop'] as $lvl) {
@@ -160,13 +175,18 @@ class SyncController extends Controller
         $hasPrestige = !empty($localData['prestige']) && ($localData['prestige']['level'] ?? 0) > 0;
 
         if ($currency > 0 || $level > 1 || $hasCollection || $hasShop || $hasPrestige) {
-            $updateData['game_state'] = $localData;
+            // JSON-encode for the JSONB column so PostgREST receives a string
+            // it can cast, regardless of Supabase version.
+            $gsResult = User::update($userId, [
+                'game_state' => json_encode($localData),
+            ], true);
+            error_log("SYNC: phase2 game_state result = " . json_encode($gsResult));
+
+            // If phase-2 succeeded, use its result (contains full row)
+            if ($gsResult !== null) {
+                $result = $gsResult;
+            }
         }
-
-        error_log("SYNC: updateData = " . json_encode($updateData));
-
-        $result = User::update($userId, $updateData, true);
-        error_log("SYNC: User::update result = " . json_encode($result));
 
         return $result;
     }
@@ -206,10 +226,14 @@ class SyncController extends Controller
         $user = User::find($userId);
         $pokemon = UserPokemon::getByUserId($userId);
 
-        // Parse game_state JSON if stored as a string
+        // Parse game_state – may be a raw array (JSONB auto-decoded),
+        // a JSON string (stored via json_encode), or null.
         $gameState = $user['game_state'] ?? null;
         if (is_string($gameState)) {
-            $gameState = json_decode($gameState, true);
+            $decoded = json_decode($gameState, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $gameState = $decoded;
+            }
         }
 
         return [

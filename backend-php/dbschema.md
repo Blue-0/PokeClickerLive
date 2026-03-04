@@ -15,6 +15,7 @@ erDiagram
         double_precision latitude
         double_precision longitude
         timestamp last_sync
+        jsonb game_state
     }
 
     auth_logs {
