@@ -11,7 +11,7 @@ part 'shop_controller.g.dart';
 
 @Riverpod(keepAlive: true)
 class ShopController extends _$ShopController {
-  late final Box<Map> _upgradeBox;
+  late Box<Map> _upgradeBox;
 
   @override
   ShopState build() {

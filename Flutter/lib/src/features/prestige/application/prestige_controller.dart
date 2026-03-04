@@ -9,7 +9,7 @@ part 'prestige_controller.g.dart';
 
 @Riverpod(keepAlive: true)
 class PrestigeController extends _$PrestigeController {
-  late final PrestigeRepository _repository;
+  late PrestigeRepository _repository;
 
   @override
   PrestigeData build() {

@@ -6,7 +6,7 @@ part 'inventory_controller.g.dart';
 
 @Riverpod(keepAlive: true)
 class InventoryController extends _$InventoryController {
-  late final Box<Inventory> _box;
+  late Box<Inventory> _box;
 
   @override
   Inventory build() {
