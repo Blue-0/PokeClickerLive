@@ -20,7 +20,7 @@ final class ClickerControllerProvider
         argument: null,
         retry: null,
         name: r'clickerControllerProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );

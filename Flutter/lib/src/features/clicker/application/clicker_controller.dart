@@ -12,7 +12,7 @@ import '../../prestige/application/prestige_controller.dart';
 
 part 'clicker_controller.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class ClickerController extends _$ClickerController {
   Timer? _autoClickTimer;
   Timer? _bossTimer;
@@ -254,6 +254,22 @@ class ClickerController extends _$ClickerController {
         _autoTick();
       });
     }
+  }
+
+  // --- Cloud restore ---
+
+  /// Restores clicker state from a cloud save snapshot.
+  /// Called once after login to re-apply server-side progress.
+  void restoreFromCloud(Map<String, dynamic> data) {
+    state = state.copyWith(
+      currency: (data['currency'] as num?)?.toInt() ?? state.currency,
+      level: (data['level'] as num?)?.toInt() ?? state.level,
+      clickPower: (data['clickPower'] as num?)?.toInt() ?? state.clickPower,
+      dps: (data['dps'] as num?)?.toInt() ?? state.dps,
+      critChance: (data['critChance'] as num?)?.toInt() ?? state.critChance,
+    );
+    // Restart auto-clicker with restored DPS
+    _startAutoClicker();
   }
 
   // --- Shop integration methods ---

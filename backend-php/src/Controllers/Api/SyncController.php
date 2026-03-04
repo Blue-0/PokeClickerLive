@@ -48,7 +48,7 @@ class SyncController extends Controller
             // 2. Update user stats from clicker data
             if (isset($localData['clicker'])) {
                 $clickerData = $localData['clicker'];
-                $updateResult = $this->updateUserStats($userId, $clickerData, $lat, $lng);
+                $updateResult = $this->updateUserStats($userId, $clickerData, $lat, $lng, $localData);
                 error_log("SYNC: updateUserStats result = " . json_encode($updateResult));
             }
 
@@ -75,10 +75,33 @@ class SyncController extends Controller
     }
 
     /**
-     * Update user stats (currency, clicks, etc.)
+     * GET /api/user/load
+     * Load cloud save data without modifying server state (read-only restore)
+     */
+    public function load(): void
+    {
+        $payload = JWT::validateFromHeader();
+        if (!$payload) {
+            $this->error('Unauthorized', 401);
+            return;
+        }
+
+        $userId = $payload['user_id'];
+
+        try {
+            $cloudData = $this->getCloudData($userId);
+            $this->success(['cloud_data' => $cloudData]);
+        } catch (\Exception $e) {
+            error_log("LOAD ERROR: " . $e->getMessage());
+            $this->error('Load failed', 500);
+        }
+    }
+
+    /**
+     * Update user stats (currency, clicks, etc.) and persist full game state
      * Returns the update result for debugging
      */
-    private function updateUserStats($userId, array $clickerData, ?float $lat = null, ?float $lng = null): ?array
+    private function updateUserStats($userId, array $clickerData, ?float $lat = null, ?float $lng = null, array $localData = []): ?array
     {
         $updateData = [
             'last_sync' => date('c')
@@ -118,6 +141,19 @@ class SyncController extends Controller
                 $newLevel = (int) $clickerData['level'];
                 $updateData['total_clicks'] = max($currentClicks, $newLevel);
             }
+        }
+
+        // Persist full game state for cloud restore.
+        // Only save if the state is non-trivial (player has made real progress)
+        // to avoid overwriting a good save with empty defaults after login.
+        $currency = (int) ($clickerData['currency'] ?? 0);
+        $level    = (int) ($clickerData['level'] ?? 1);
+        $hasCollection = !empty($localData['collection']);
+        $hasShop = !empty($localData['shop']);
+        $hasPrestige = !empty($localData['prestige']) && ($localData['prestige']['level'] ?? 0) > 0;
+
+        if ($currency > 0 || $level > 1 || $hasCollection || $hasShop || $hasPrestige) {
+            $updateData['game_state'] = $localData;
         }
 
         error_log("SYNC: updateData = " . json_encode($updateData));
@@ -163,14 +199,21 @@ class SyncController extends Controller
         $user = User::find($userId);
         $pokemon = UserPokemon::getByUserId($userId);
 
+        // Parse game_state JSON if stored as a string
+        $gameState = $user['game_state'] ?? null;
+        if (is_string($gameState)) {
+            $gameState = json_decode($gameState, true);
+        }
+
         return [
             'user' => $user ? [
                 'pokedollars' => $user['pokedollars'] ?? 0,
                 'lifetime_earnings' => $user['lifetime_earnings'] ?? 0,
                 'total_clicks' => $user['total_clicks'] ?? 0,
             ] : null,
-            'pokemon' => $pokemon,
-            'last_sync' => $user['last_sync'] ?? null
+            'pokemon'    => $pokemon,
+            'last_sync'  => $user['last_sync'] ?? null,
+            'game_state' => $gameState,
         ];
     }
 }

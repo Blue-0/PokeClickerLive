@@ -6,6 +6,7 @@ import '../domain/user.dart';
 import '../../core/data/dio_provider.dart';
 import '../../collection/domain/user_pokemon.dart';
 import '../../shop/domain/inventory.dart';
+import '../../sync/application/sync_controller.dart';
 
 part 'auth_controller.g.dart';
 
@@ -77,6 +78,13 @@ class AuthController extends _$AuthController {
         await repo.saveToken(token);
 
         state = state.copyWith(user: user, token: token, isLoading: false);
+
+        // Restore cloud progress after login.
+        // Scheduled after the current event so the router can redirect to home
+        // and game controllers can initialize before data is applied.
+        Future(() async {
+          await ref.read(syncControllerProvider.notifier).loadAndRestore();
+        });
       } else {
         state = state.copyWith(
           isLoading: false,

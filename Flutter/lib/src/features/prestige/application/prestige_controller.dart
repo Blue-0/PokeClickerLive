@@ -7,7 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'prestige_controller.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class PrestigeController extends _$PrestigeController {
   late final PrestigeRepository _repository;
 
@@ -38,5 +38,16 @@ class PrestigeController extends _$PrestigeController {
 
     // Reset Inventory
     ref.read(inventoryControllerProvider.notifier).resetForPrestige();
+  }
+
+  /// Restores prestige state from a cloud save snapshot.
+  /// Called once after login to re-apply server-side progress.
+  Future<void> restoreFromCloud(Map<String, dynamic> data) async {
+    final newState = PrestigeData(
+      prestigeLevel: (data['level'] as num?)?.toInt() ?? 0,
+      badgesAmount: (data['badges'] as num?)?.toInt() ?? 0,
+    );
+    await _repository.savePrestige(newState);
+    state = newState;
   }
 }

@@ -17,6 +17,27 @@ class CloudSaveRepository {
 
   CloudSaveRepository(this._ref);
 
+  /// Load cloud save data from the server without modifying server state.
+  /// Used on login to restore progress from the cloud.
+  Future<Either<String, Map<String, dynamic>>> loadData() async {
+    try {
+      final dio = _ref.read(dioProvider);
+      final response = await dio.get('/api/user/load');
+
+      if (response.statusCode == 200) {
+        final data = Map<String, dynamic>.from(response.data);
+        final cloudData = data['data'] as Map<String, dynamic>?;
+        return Right(cloudData ?? {});
+      } else {
+        return Left('Server error: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      return Left(e.message ?? 'Network error');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
   Future<Either<String, Map<String, dynamic>>> syncData({
     required int lastSync,
     required Map<String, dynamic> localData,
