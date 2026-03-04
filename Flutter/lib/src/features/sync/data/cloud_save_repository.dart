@@ -17,6 +17,32 @@ class CloudSaveRepository {
 
   CloudSaveRepository(this._ref);
 
+  /// Load cloud save data from the server without modifying server state.
+  /// Used on login to restore progress from the cloud.
+  ///
+  /// Response structure from server:
+  ///   { "status": "success", "data": { "cloud_data": { "user": ..., "pokemon": [...], "game_state": {...} } } }
+  /// Returns the inner `cloud_data` map so callers can access game_state / pokemon directly.
+  Future<Either<String, Map<String, dynamic>>> loadData() async {
+    try {
+      final dio = _ref.read(dioProvider);
+      final response = await dio.get('/api/user/load');
+
+      if (response.statusCode == 200) {
+        final responseBody = response.data as Map<String, dynamic>;
+        final innerData = responseBody['data'] as Map<String, dynamic>?;
+        final cloudData = innerData?['cloud_data'] as Map<String, dynamic>?;
+        return Right(cloudData ?? {});
+      } else {
+        return Left('Server error: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      return Left(e.message ?? 'Network error');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
   Future<Either<String, Map<String, dynamic>>> syncData({
     required int lastSync,
     required Map<String, dynamic> localData,
@@ -70,7 +96,11 @@ class CloudSaveRepository {
       final response = await dio.post('/api/user/sync', data: data);
 
       if (response.statusCode == 200) {
-        return Right(Map<String, dynamic>.from(response.data));
+        // Response structure: { "status": "success", "data": { "server_timestamp": ..., "cloud_data": {...} } }
+        // Extract inner data so SyncController can access server_timestamp and cloud_data directly.
+        final responseBody = response.data as Map<String, dynamic>;
+        final innerData = responseBody['data'] as Map<String, dynamic>?;
+        return Right(innerData ?? {});
       } else {
         return Left('Server error: ${response.statusCode}');
       }

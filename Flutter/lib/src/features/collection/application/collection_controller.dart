@@ -4,6 +4,7 @@ import '../data/collection_repository.dart';
 import '../domain/collection_state.dart';
 import '../domain/user_pokemon.dart';
 import 'capture_service.dart';
+import 'package:flutter/foundation.dart';
 
 part 'collection_controller.g.dart';
 
@@ -49,5 +50,34 @@ class CollectionController extends _$CollectionController {
   /// Clears the last capture result notification.
   void clearCaptureNotification() {
     state = state.copyWith(lastCaptureResult: null);
+  }
+
+  /// Restores Pokemon collection from a cloud save snapshot.
+  /// Each entry in [pokemonList] is a DB row with a 'pokemon_id' field.
+  Future<void> restoreFromCloud(List<dynamic> pokemonList) async {
+    final repo = ref.read(collectionRepositoryProvider);
+    final restoredPokemon = <UserPokemon>[];
+
+    for (final entry in pokemonList) {
+      int? pokemonId;
+      if (entry is Map) {
+        pokemonId = ((entry['pokemon_id'] ?? entry['pokemonId']) as num?)?.toInt();
+      }
+      if (pokemonId == null) continue;
+
+      final up = UserPokemon(
+        id: const Uuid().v4(),
+        pokemonId: pokemonId,
+        acquiredAt: DateTime.now(),
+      );
+      try {
+        await repo.addPokemon(up);
+        restoredPokemon.add(up);
+      } catch (e) {
+        debugPrint('CollectionController.restoreFromCloud: failed to add pokemon $pokemonId: $e');
+      }
+    }
+
+    state = state.copyWith(ownedPokemon: restoredPokemon);
   }
 }

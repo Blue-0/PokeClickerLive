@@ -210,6 +210,30 @@ class ZoneController extends _$ZoneController {
         .reduce((a, b) => a < b ? a : b);
   }
 
+  /// Restores zone progression from a cloud save snapshot.
+  /// Called once after login to re-apply server-side kill counts and current zone.
+  void restoreFromCloud(Map<String, dynamic> data) {
+    final rawKills = data['killCounts'] as Map?;
+    final killCounts = rawKills != null
+        ? rawKills.map((k, v) => MapEntry(k.toString(), (v as num).toInt()))
+        : <String, int>{};
+
+    final updatedZones = _checkAndUnlockZones(killCounts);
+
+    Zone currentZone = state.currentZone;
+    final zoneId = data['currentZoneId'] as String?;
+    if (zoneId != null) {
+      final saved = updatedZones.where((z) => z.id == zoneId).firstOrNull;
+      if (saved != null) currentZone = saved;
+    }
+
+    state = state.copyWith(
+      killCounts: killCounts,
+      allZones: updatedZones,
+      currentZone: currentZone,
+    );
+  }
+
   /// Reset all progression and return to the starting zone
   void resetToStart() {
     final repository = ref.read(zoneRepositoryProvider);

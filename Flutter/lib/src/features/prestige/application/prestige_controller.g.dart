@@ -20,7 +20,7 @@ final class PrestigeControllerProvider
         argument: null,
         retry: null,
         name: r'prestigeControllerProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );

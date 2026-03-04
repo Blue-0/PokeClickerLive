@@ -42,6 +42,22 @@ class ShopController extends _$ShopController {
     _upgradeBox.put('levels', levels);
   }
 
+  /// Restores shop upgrade levels from a cloud save snapshot.
+  /// Only updates the persisted levels and displayed state – the actual clicker
+  /// stats (clickPower, dps, critChance) are restored separately via ClickerController.
+  void restoreFromCloud(Map<String, dynamic> shopData) {
+    final levels = shopData.map((k, v) => MapEntry(k, (v as num).toInt()));
+    _upgradeBox.put('levels', levels);
+
+    final repository = ref.read(shopRepositoryProvider);
+    final upgrades = repository.getAvailableUpgrades().map((upgrade) {
+      final savedLevel = levels[upgrade.id] ?? 0;
+      return upgrade.copyWith(level: savedLevel);
+    }).toList();
+
+    state = state.copyWith(upgrades: upgrades);
+  }
+
   bool purchaseUpgrade(String upgradeId) {
     final clickerController = ref.read(clickerControllerProvider.notifier);
     final clickerState = ref.read(clickerControllerProvider);
