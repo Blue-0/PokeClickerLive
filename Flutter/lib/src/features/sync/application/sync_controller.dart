@@ -93,6 +93,20 @@ class SyncController extends _$SyncController {
     state = state.copyWith(cloudDataReceived: null);
   }
 
+  /// Invalidates all keepAlive game controllers so they rebuild from their
+  /// default (empty) state. Called on logout and when switching accounts so
+  /// the previous user's in-memory data is never shown to the next user.
+  void resetGameControllers() {
+    ref.invalidate(clickerControllerProvider);
+    ref.invalidate(prestigeControllerProvider);
+    ref.invalidate(shopControllerProvider);
+    ref.invalidate(inventoryControllerProvider);
+    ref.invalidate(zoneControllerProvider);
+    ref.invalidate(collectionControllerProvider);
+    // Reset sync state (timestamps, errors, pending flags)
+    state = const SyncState();
+  }
+
   /// Fetches cloud save data from the server and restores all game controllers.
   /// Called once after login so the player gets their progress back immediately.
   Future<void> loadAndRestore() async {

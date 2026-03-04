@@ -72,6 +72,9 @@ class AuthController extends _$AuthController {
         if (previousUser != null &&
             previousUser.id.toString() != user.id.toString()) {
           await _clearLocalHiveData();
+          // Reset in-memory controller state so the previous user's data
+          // is never visible to the newly authenticated user.
+          ref.read(syncControllerProvider.notifier).resetGameControllers();
         }
 
         await repo.saveUser(user);
@@ -121,6 +124,7 @@ class AuthController extends _$AuthController {
         if (previousUser != null &&
             previousUser.id.toString() != user.id.toString()) {
           await _clearLocalHiveData();
+          ref.read(syncControllerProvider.notifier).resetGameControllers();
         }
 
         await repo.saveUser(user);
@@ -139,9 +143,11 @@ class AuthController extends _$AuthController {
   }
 
   Future<void> logout() async {
+    // Reset in-memory game controller state BEFORE clearing auth so that
+    // keepAlive controllers don't retain the current user's data.
+    ref.read(syncControllerProvider.notifier).resetGameControllers();
+
     final repo = ref.read(authRepositoryProvider);
-    // Clear credentials first, then wipe all local game data so the next
-    // user who logs in on this device starts with a clean slate.
     await repo.clearAll();
     await _clearLocalHiveData();
     state = const AuthState();
