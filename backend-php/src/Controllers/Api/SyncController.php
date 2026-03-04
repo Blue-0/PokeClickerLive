@@ -113,23 +113,35 @@ class SyncController extends Controller
             $updateData['longitude'] = $lng;
         }
 
+        $user = User::find($userId);
+        error_log("SYNC: Found user = " . json_encode($user ? 'yes' : 'no'));
+
         // Update pokedollars
         if (isset($clickerData['currency'])) {
-            $currency = (int) $clickerData['currency'];
-            $updateData['pokedollars'] = $currency;
+            $clientCurrency = (int) $clickerData['currency'];
+            $serverPokedollars = $user ? (int)($user['pokedollars'] ?? 0) : 0;
+            
+            $previousGameState = null;
+            if ($user && isset($user['game_state'])) {
+                $previousGameState = is_string($user['game_state']) ? json_decode($user['game_state'], true) : $user['game_state'];
+            }
+            $previousClientCurrency = isset($previousGameState['clicker']['currency']) ? (int)$previousGameState['clicker']['currency'] : 0;
+            
+            // Calcul de la différence depuis le dernier Sync
+            $clientDelta = $clientCurrency - $previousClientCurrency;
+            
+            // On applique la différence au solde serveur (qui gagne sur les suppressions)
+            $newPokedollars = max(0, $serverPokedollars + $clientDelta);
+            
+            $updateData['pokedollars'] = $newPokedollars;
+            
+            // Mise à jour de ce qu'on va sauvegarder en JSON de l'état du jeu pour la prochaine fois
+            $localData['clicker']['currency'] = $newPokedollars;
+            $clickerData['currency'] = $newPokedollars;
 
-            // Update lifetime earnings if current is higher
-            $user = User::find($userId);
-            error_log("SYNC: Found user = " . json_encode($user ? 'yes' : 'no'));
-
-            if ($user && $currency > ($user['pokedollars'] ?? 0)) {
-                $difference = $currency - ($user['pokedollars'] ?? 0);
-                if ($difference > 0) {
-                    $updateData['lifetime_earnings'] = ($user['lifetime_earnings'] ?? 0) + $difference;
-
-                    // Log the transaction with GPS
-                    TransactionLog::log($userId, 'earn', $difference, 'Game sync earnings', $lat, $lng);
-                }
+            if ($user && $clientDelta > 0) {
+                $updateData['lifetime_earnings'] = ($user['lifetime_earnings'] ?? 0) + $clientDelta;
+                TransactionLog::log($userId, 'earn', $clientDelta, 'Game sync earnings', $lat, $lng);
             }
         }
 

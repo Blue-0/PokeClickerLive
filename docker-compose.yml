@@ -13,6 +13,4 @@ services:
       - JWT_SECRET
       - ADMIN_USER
       - ADMIN_PASSWORD_HASH
-    env_file:
-      - ./.env
     restart: always

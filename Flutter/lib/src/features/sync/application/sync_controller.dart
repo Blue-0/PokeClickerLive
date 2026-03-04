@@ -77,6 +77,16 @@ class SyncController extends _$SyncController {
         final serverTimestamp = data['server_timestamp'] as int? ?? 0;
         final cloudData = data['cloud_data'] as Map<String, dynamic>?;
 
+        // Force UI to update current currency to match backend
+        if (cloudData != null && cloudData['user'] != null) {
+          final userData = cloudData['user'];
+          if (userData is Map && userData['pokedollars'] != null) {
+            ref.read(clickerControllerProvider.notifier).restoreFromCloud({
+              'currency': userData['pokedollars'],
+            });
+          }
+        }
+
         state = state.copyWith(
           isSyncing: false,
           lastSyncTimestamp: serverTimestamp,
@@ -132,8 +142,9 @@ class SyncController extends _$SyncController {
   /// Restoration order: prestige → clicker → shop → world → collection.
   void _restoreFromCloudData(Map<String, dynamic> cloudData) {
     final gameState = cloudData['game_state'];
-    final Map<String, dynamic>? gs =
-        gameState is Map ? Map<String, dynamic>.from(gameState) : null;
+    final Map<String, dynamic>? gs = gameState is Map
+        ? Map<String, dynamic>.from(gameState)
+        : null;
 
     if (gs == null) return;
 
@@ -148,9 +159,15 @@ class SyncController extends _$SyncController {
     // 2. Clicker (currency, level, clickPower, dps, critChance)
     final clickerData = gs['clicker'];
     if (clickerData is Map) {
-      ref
-          .read(clickerControllerProvider.notifier)
-          .restoreFromCloud(Map<String, dynamic>.from(clickerData));
+      final clickerMap = Map<String, dynamic>.from(clickerData);
+
+      // Override the old game_state currency with the authoritative database pokedollars
+      final userData = cloudData['user'];
+      if (userData is Map && userData['pokedollars'] != null) {
+        clickerMap['currency'] = userData['pokedollars'];
+      }
+
+      ref.read(clickerControllerProvider.notifier).restoreFromCloud(clickerMap);
     }
 
     // 3. Shop upgrade levels (display only; clicker stats already restored above)
