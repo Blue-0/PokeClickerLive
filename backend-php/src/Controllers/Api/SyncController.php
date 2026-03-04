@@ -149,7 +149,14 @@ class SyncController extends Controller
         $currency = (int) ($clickerData['currency'] ?? 0);
         $level    = (int) ($clickerData['level'] ?? 1);
         $hasCollection = !empty($localData['collection']);
-        $hasShop = !empty($localData['shop']);
+        // Shop upgrades always exist at level 0; only count as progress when
+        // at least one upgrade has been purchased (level > 0).
+        $hasShop = false;
+        if (!empty($localData['shop']) && is_array($localData['shop'])) {
+            foreach ($localData['shop'] as $lvl) {
+                if ((int) $lvl > 0) { $hasShop = true; break; }
+            }
+        }
         $hasPrestige = !empty($localData['prestige']) && ($localData['prestige']['level'] ?? 0) > 0;
 
         if ($currency > 0 || $level > 1 || $hasCollection || $hasShop || $hasPrestige) {

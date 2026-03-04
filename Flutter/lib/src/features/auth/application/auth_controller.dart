@@ -66,16 +66,19 @@ class AuthController extends _$AuthController {
 
         final repo = ref.read(authRepositoryProvider);
 
-        // If a different user was previously stored locally, wipe their data
-        // before writing the new session so collections never get mixed.
+        // If a different user was previously stored locally, wipe their
+        // Hive data before writing the new session so collections never
+        // get mixed.
         final previousUser = repo.getUser();
         if (previousUser != null &&
             previousUser.id.toString() != user.id.toString()) {
           await _clearLocalHiveData();
-          // Reset in-memory controller state so the previous user's data
-          // is never visible to the newly authenticated user.
-          ref.read(syncControllerProvider.notifier).resetGameControllers();
         }
+
+        // Always reset in-memory controllers so that stale state from a
+        // previous session (or from default build values) is cleared before
+        // the cloud restore applies fresh data.
+        ref.read(syncControllerProvider.notifier).resetGameControllers();
 
         await repo.saveUser(user);
         await repo.saveToken(token);

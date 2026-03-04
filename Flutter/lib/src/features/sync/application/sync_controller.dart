@@ -29,6 +29,14 @@ class SyncController extends _$SyncController {
     // Initial timer setup based on current auth state
     _updateTimerBasedOnAuth();
 
+    // Auto-restore from cloud if already authenticated (e.g. app restart
+    // with a cached session). Scheduled as a microtask so build() returns
+    // synchronously and game controllers can initialize first.
+    final authRepo = ref.read(authRepositoryProvider);
+    if (authRepo.getToken() != null) {
+      Future.microtask(() => loadAndRestore());
+    }
+
     return const SyncState();
   }
 
@@ -113,6 +121,9 @@ class SyncController extends _$SyncController {
     final authRepo = ref.read(authRepositoryProvider);
     if (authRepo.getToken() == null) return;
 
+    // Guard against concurrent calls (e.g. auto-restore + explicit login)
+    if (state.isSyncing) return;
+
     state = state.copyWith(isSyncing: true, lastError: null);
 
     final result = await ref.read(cloudSaveRepositoryProvider).loadData();
@@ -124,52 +135,67 @@ class SyncController extends _$SyncController {
       (cloudData) {
         _restoreFromCloudData(cloudData);
         state = state.copyWith(isSyncing: false, consecutiveFailures: 0);
+        // Ensure the periodic sync timer is running after a successful restore
+        _startSyncTimer();
       },
     );
   }
 
   /// Applies cloud save data to all game controllers.
   /// Restoration order: prestige → clicker → shop → world → collection.
+  /// Falls back to user-level stats when game_state is unavailable.
   void _restoreFromCloudData(Map<String, dynamic> cloudData) {
     final gameState = cloudData['game_state'];
     final Map<String, dynamic>? gs =
         gameState is Map ? Map<String, dynamic>.from(gameState) : null;
 
-    if (gs == null) return;
+    if (gs != null) {
+      // 1. Prestige first (its bonus affects other calculations)
+      final prestigeData = gs['prestige'];
+      if (prestigeData is Map) {
+        ref
+            .read(prestigeControllerProvider.notifier)
+            .restoreFromCloud(Map<String, dynamic>.from(prestigeData));
+      }
 
-    // 1. Prestige first (its bonus affects other calculations)
-    final prestigeData = gs['prestige'];
-    if (prestigeData is Map) {
-      ref
-          .read(prestigeControllerProvider.notifier)
-          .restoreFromCloud(Map<String, dynamic>.from(prestigeData));
+      // 2. Clicker (currency, level, clickPower, dps, critChance)
+      final clickerData = gs['clicker'];
+      if (clickerData is Map) {
+        ref
+            .read(clickerControllerProvider.notifier)
+            .restoreFromCloud(Map<String, dynamic>.from(clickerData));
+      }
+
+      // 3. Shop upgrade levels (display only; clicker stats already restored above)
+      final shopData = gs['shop'];
+      if (shopData is Map) {
+        ref
+            .read(shopControllerProvider.notifier)
+            .restoreFromCloud(Map<String, dynamic>.from(shopData));
+      }
+
+      // 4. Zone kill counts and current zone
+      final worldData = gs['world'];
+      if (worldData is Map) {
+        ref
+            .read(zoneControllerProvider.notifier)
+            .restoreFromCloud(Map<String, dynamic>.from(worldData));
+      }
+    } else {
+      // Fallback: restore currency from the user-level pokedollars column
+      // when game_state has not been persisted yet.
+      final userData = cloudData['user'];
+      if (userData is Map) {
+        final pokedollars = (userData['pokedollars'] as num?)?.toInt();
+        if (pokedollars != null && pokedollars > 0) {
+          ref
+              .read(clickerControllerProvider.notifier)
+              .restoreFromCloud({'currency': pokedollars});
+        }
+      }
     }
 
-    // 2. Clicker (currency, level, clickPower, dps, critChance)
-    final clickerData = gs['clicker'];
-    if (clickerData is Map) {
-      ref
-          .read(clickerControllerProvider.notifier)
-          .restoreFromCloud(Map<String, dynamic>.from(clickerData));
-    }
-
-    // 3. Shop upgrade levels (display only; clicker stats already restored above)
-    final shopData = gs['shop'];
-    if (shopData is Map) {
-      ref
-          .read(shopControllerProvider.notifier)
-          .restoreFromCloud(Map<String, dynamic>.from(shopData));
-    }
-
-    // 4. Zone kill counts and current zone
-    final worldData = gs['world'];
-    if (worldData is Map) {
-      ref
-          .read(zoneControllerProvider.notifier)
-          .restoreFromCloud(Map<String, dynamic>.from(worldData));
-    }
-
-    // 5. Pokemon collection (from server DB rows)
+    // 5. Pokemon collection (from server DB rows – independent of game_state)
     final pokemonList = cloudData['pokemon'];
     if (pokemonList is List && pokemonList.isNotEmpty) {
       ref

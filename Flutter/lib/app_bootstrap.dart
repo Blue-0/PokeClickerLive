@@ -6,6 +6,7 @@ import 'package:pokeclickerlive/src/features/collection/domain/user_pokemon.dart
 import 'package:pokeclickerlive/src/features/shop/data/inventory_adapter.dart';
 import 'package:pokeclickerlive/src/features/shop/domain/inventory.dart';
 import 'package:pokeclickerlive/src/features/prestige/data/prestige_repository.dart';
+import 'package:pokeclickerlive/src/features/auth/data/auth_repository.dart';
 
 Future<ProviderContainer> bootstrap() async {
   await Hive.initFlutter();
@@ -38,11 +39,17 @@ Future<ProviderContainer> bootstrap() async {
   await Hive.openBox('auth');
   final prestigeBox = await Hive.openBox<Map<dynamic, dynamic>>('prestige');
 
+  // Pre-load SharedPreferences so that AuthRepository.getToken() works
+  // synchronously from the very first frame (enables auto-login).
+  final authRepo = AuthRepository();
+  await authRepo.init();
+
   final container = ProviderContainer(
     overrides: [
       prestigeRepositoryProvider.overrideWithValue(
         PrestigeRepository(prestigeBox),
       ),
+      authRepositoryProvider.overrideWithValue(authRepo),
     ],
   );
   return container;
