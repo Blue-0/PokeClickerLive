@@ -48,6 +48,19 @@ class CloudSaveRepository {
     }
   }
 
+  /// Immediately persist a wild capture to the server so the Pokemon is not
+  /// lost if the app closes before the next periodic sync.
+  /// Fire-and-forget: callers do not need to await the result.
+  Future<void> registerCapture(int pokemonId) async {
+    try {
+      final dio = _ref.read(dioProvider);
+      await dio.post('/api/user/capture', data: {'pokemon_id': pokemonId});
+    } catch (e) {
+      // Best-effort: the periodic sync will recover any missed captures.
+      debugPrint('CloudSaveRepository.registerCapture: failed ($e)');
+    }
+  }
+
   Future<Either<String, Map<String, dynamic>>> syncData({
     required int lastSync,
     required Map<String, dynamic> localData,
