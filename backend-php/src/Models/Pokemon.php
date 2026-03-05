@@ -126,6 +126,53 @@ class Pokemon extends Model
     }
 
     /**
+     * Ensure a Pokémon row exists in the ref_pokemon DB table.
+     * Fetches data from PokeAPI/cache and inserts a minimal row if missing.
+     * This is required because user_pokemon.pokemon_id has a FK to ref_pokemon.id.
+     */
+    public static function ensureInDb(int $id): bool
+    {
+        // Check if already in DB
+        $instance = new static();
+        $result = $instance->db->from(static::$table, 'id', ['id' => 'eq.' . $id]);
+        if (!empty($result['data'])) {
+            return true; // Already exists
+        }
+
+        // Get data from PokeAPI / cache
+        $apiData = self::get($id);
+        if (!$apiData) {
+            error_log("Pokemon::ensureInDb: Could not fetch pokemon $id from API");
+            return false;
+        }
+
+        $row = [
+            'id'              => $id,
+            'name'            => $apiData['name'] ?? 'Unknown',
+            'description'     => '',
+            'base_cost'       => $apiData['price'] ?? 0,
+            'base_production' => $apiData['production'] ?? 0,
+            'rarity'          => 'common',
+            'sprite_asset'    => $apiData['sprite'] ?? '/assets/pokemon/unknown.png',
+            'region_origin'   => 'Sinnoh',
+            'created_at'      => date('c'),
+        ];
+
+        $insertResult = $instance->db->insert(static::$table, $row, true);
+
+        if (isset($insertResult['error']) || ($insertResult['code'] ?? 0) >= 400) {
+            // Could be a race condition (another request inserted it) – check for 409 conflict
+            if (($insertResult['code'] ?? 0) === 409) {
+                return true; // Already exists now
+            }
+            error_log("Pokemon::ensureInDb: insert failed for $id: " . json_encode($insertResult));
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Clear the cache for a specific Pokémon or all
      */
     public static function clearCache(?int $id = null): void

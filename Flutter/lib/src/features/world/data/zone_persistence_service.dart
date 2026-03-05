@@ -41,7 +41,7 @@ class ZonePersistenceService {
     final data = _box!.get(_killCountsKey);
     if (data == null) return {};
     // Hive returns Map<dynamic, dynamic>, need to cast
-    return Map<String, int>.from(data as Map);
+    return Map<String, int>.from(data is Map ? data : {});
   }
 
   Future<void> _ensureInitialized() async {

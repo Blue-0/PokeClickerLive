@@ -4,6 +4,7 @@ namespace App\Controllers\Api;
 use App\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserPokemon;
+use App\Models\Pokemon;
 use App\Models\TransactionLog;
 use App\Utils\JWT;
 
@@ -194,6 +195,12 @@ class SyncController extends Controller
             }
 
             $pokemonId = (int) $pId;
+
+            // Ensure the ref_pokemon row exists (PokeAPI data → DB) so FK is satisfied
+            if (!Pokemon::ensureInDb($pokemonId)) {
+                error_log("SYNC: Could not ensure ref_pokemon for $pokemonId, skipping");
+                continue;
+            }
 
             // ensureExists is idempotent: creates row if missing, no-op if present.
             // addPokemon would increment quantity on every sync, which is wrong.

@@ -44,4 +44,9 @@ class TeamController extends _$TeamController {
 
     ref.read(teamRepositoryProvider).saveTeam(newList);
   }
+
+  void restoreFromCloud(List<String> pokemonIds) {
+    state = state.copyWith(activePokemonIds: pokemonIds);
+    ref.read(teamRepositoryProvider).saveTeam(pokemonIds);
+  }
 }

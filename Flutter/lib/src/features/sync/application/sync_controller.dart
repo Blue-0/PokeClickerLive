@@ -75,7 +75,9 @@ class SyncController extends _$SyncController {
       },
       (data) {
         final serverTimestamp = data['server_timestamp'] as int? ?? 0;
-        final cloudData = data['cloud_data'] as Map<String, dynamic>?;
+        final cloudData = data['cloud_data'] is Map
+            ? data['cloud_data'] as Map<String, dynamic>
+            : null;
 
         // Force UI to update current currency to match backend
         if (cloudData != null && cloudData['user'] != null) {
@@ -192,6 +194,13 @@ class SyncController extends _$SyncController {
       ref
           .read(collectionControllerProvider.notifier)
           .restoreFromCloud(pokemonList);
+    }
+
+    // 6. User's Team (active Pokemon)
+    final teamData = gs['team'];
+    if (teamData is List) {
+      final teamIds = teamData.map((e) => e.toString()).toList();
+      ref.read(teamControllerProvider.notifier).restoreFromCloud(teamIds);
     }
   }
 

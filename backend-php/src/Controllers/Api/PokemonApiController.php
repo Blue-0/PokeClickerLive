@@ -104,6 +104,9 @@ class PokemonApiController extends Controller
         // Deduct balance
         User::updateBalance($userId, -$price);
 
+        // Ensure ref_pokemon row exists (PokeAPI data → DB) so FK is satisfied
+        Pokemon::ensureInDb($pokemonId);
+
         // Add Pokémon to inventory
         $entry = UserPokemon::addPokemon($userId, $pokemonId);
 
