@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vibration/vibration.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../application/auth_controller.dart';
 import 'widgets/custom_text_field.dart';
@@ -113,6 +114,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   }
 
   Future<void> _login() async {
+    Vibration.vibrate(duration: 50);
     if (!_validateLoginForm()) return;
 
     setState(() => _isLoading = true);
@@ -145,6 +147,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   }
 
   Future<void> _signUp() async {
+    Vibration.vibrate(duration: 50);
     if (!_validateSignupForm()) return;
 
     setState(() => _isLoading = true);

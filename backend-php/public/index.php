@@ -71,6 +71,9 @@ try {
     $router->get('/admin/api/users/{id}/inventory', \App\Controllers\Admin\UsersController::class, 'apiInventory');
     $router->post('/admin/api/users/{id}/stats', \App\Controllers\Admin\UsersController::class, 'updateStats');
     $router->post('/admin/api/users/{id}/inventory', \App\Controllers\Admin\UsersController::class, 'updateInventory');
+    $router->post('/admin/api/users/create', \App\Controllers\Admin\UsersController::class, 'createUser');
+    $router->post('/admin/api/users/{id}/profile', \App\Controllers\Admin\UsersController::class, 'updateUser');
+    $router->post('/admin/api/users/{id}/delete', \App\Controllers\Admin\UsersController::class, 'deleteUser');
 
     $router->dispatch();
 } catch (Exception $e) {

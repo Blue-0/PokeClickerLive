@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vibration/vibration.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app_bootstrap.dart';
 import 'src/routing/app_router.dart';
@@ -21,6 +22,16 @@ class MyApp extends ConsumerWidget {
       theme: _buildAppTheme(),
       debugShowCheckedModeBanner: false,
       routerConfig: router,
+      builder: (context, child) {
+        return Listener(
+          onPointerDown: (_) async {
+            if (await Vibration.hasVibrator() == true) {
+              Vibration.vibrate(duration: 100, amplitude: 128);
+            }
+          },
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 

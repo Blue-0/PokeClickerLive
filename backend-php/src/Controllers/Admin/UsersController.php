@@ -236,4 +236,133 @@ class UsersController extends Controller
 
         echo json_encode(['success' => true, 'updated' => $data]);
     }
+
+    /**
+     * POST /admin/api/users – Créer un nouvel utilisateur
+     * Body JSON : { username: string, email: string, password: string }
+     */
+    public function createUser(): void
+    {
+        $this->requireAdminJson();
+        header('Content-Type: application/json');
+
+        $input = $this->getJsonInput() ?? [];
+        $username = trim($input['username'] ?? '');
+        $email    = trim($input['email']    ?? '');
+        $password = $input['password']       ?? '';
+
+        // Validation
+        $errors = [];
+        if (empty($username)) $errors[] = 'Le nom d\'utilisateur est requis';
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Email invalide';
+        if (strlen($password) < 6) $errors[] = 'Le mot de passe doit faire au moins 6 caractères';
+
+        if (!empty($errors)) {
+            http_response_code(400);
+            echo json_encode(['error' => implode('. ', $errors)]);
+            return;
+        }
+
+        $supabase = Supabase::getInstance();
+
+        // Vérifier que l'email n'existe pas déjà
+        $existing = $supabase->from('users', 'id', ['email' => 'eq.' . $email]);
+        if (!empty($existing['data'])) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Cet email est déjà utilisé']);
+            return;
+        }
+
+        // Vérifier que le username n'existe pas déjà
+        $existingUser = $supabase->from('users', 'id', ['username' => 'eq.' . $username]);
+        if (!empty($existingUser['data'])) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Ce nom d\'utilisateur est déjà pris']);
+            return;
+        }
+
+        $data = [
+            'username'          => $username,
+            'email'             => $email,
+            'password_hash'     => password_hash($password, PASSWORD_DEFAULT),
+            'pokedollars'       => 0,
+            'lifetime_earnings' => 0,
+            'total_clicks'      => 0,
+        ];
+
+        $result = $supabase->insert('users', $data, true);
+
+        if (isset($result['error']) || ($result['code'] ?? 0) >= 400) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Échec de la création de l\'utilisateur']);
+            return;
+        }
+
+        echo json_encode(['success' => true, 'user' => $result['data'][0] ?? $data]);
+    }
+
+    /**
+     * POST /admin/api/users/{id}/profile – Modifier le profil d'un utilisateur
+     * Body JSON : { username?: string, email?: string, password?: string }
+     */
+    public function updateUser(int $userId): void
+    {
+        $this->requireAdminJson();
+        header('Content-Type: application/json');
+
+        $input = $this->getJsonInput() ?? [];
+        $data  = [];
+
+        if (isset($input['username']) && trim($input['username']) !== '') {
+            $data['username'] = trim($input['username']);
+        }
+        if (isset($input['email']) && filter_var(trim($input['email']), FILTER_VALIDATE_EMAIL)) {
+            $data['email'] = trim($input['email']);
+        }
+        if (isset($input['password']) && strlen($input['password']) >= 6) {
+            $data['password_hash'] = password_hash($input['password'], PASSWORD_DEFAULT);
+        }
+
+        if (empty($data)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Aucun champ valide fourni']);
+            return;
+        }
+
+        $supabase = Supabase::getInstance();
+        $result   = $supabase->update('users', $data, ['id' => 'eq.' . $userId], true);
+
+        if (isset($result['error']) || ($result['code'] ?? 0) >= 400) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Échec de la mise à jour du profil']);
+            return;
+        }
+
+        echo json_encode(['success' => true, 'updated' => array_keys($data)]);
+    }
+
+    /**
+     * POST /admin/api/users/{id}/delete – Supprimer un utilisateur et son inventaire
+     */
+    public function deleteUser(int $userId): void
+    {
+        $this->requireAdminJson();
+        header('Content-Type: application/json');
+
+        $supabase = Supabase::getInstance();
+
+        // Supprimer d'abord l'inventaire de l'utilisateur
+        $supabase->delete('user_pokemon', ['user_id' => 'eq.' . $userId], true);
+
+        // Supprimer l'utilisateur
+        $result = $supabase->delete('users', ['id' => 'eq.' . $userId], true);
+
+        if (isset($result['error']) || ($result['code'] ?? 0) >= 400) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Échec de la suppression de l\'utilisateur']);
+            return;
+        }
+
+        echo json_encode(['success' => true, 'deleted_user_id' => $userId]);
+    }
 }

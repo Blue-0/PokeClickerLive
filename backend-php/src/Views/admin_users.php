@@ -104,8 +104,10 @@
         .btn:active { opacity: .72; }
         .btn:disabled { opacity: .5; cursor: not-allowed; }
         .btn-primary   { background: #007bff; color: #fff; }
+        .btn-success   { background: #28a745; color: #fff; }
         .btn-secondary { background: #6c757d; color: #fff; }
         .btn-danger    { background: #dc3545; color: #fff; }
+        .btn-warning   { background: #ffc107; color: #333; }
         .btn-outline   { background: #fff; color: #333; border: 1px solid #ccc; }
         .btn-sm { padding: 4px 10px; font-size: 12px; border-radius: 3px; }
 
@@ -156,18 +158,29 @@
         }
         .modal-box {
             background: #fff; border-radius: 8px; padding: 24px;
-            max-width: 440px; width: 100%;
+            max-width: 480px; width: 100%;
             box-shadow: 0 8px 32px rgba(0,0,0,.25);
         }
         .modal-box h3 { margin: 0 0 16px; font-size: 17px; color: #2c3e50; }
         .form-group { display: flex; flex-direction: column; margin-bottom: 14px; }
         .form-group label { font-weight: 500; margin-bottom: 4px; font-size: 14px; }
-        .form-group input {
+        .form-group input, .form-group select {
             padding: 8px 12px; border: 1px solid #ccc;
             border-radius: 4px; font-size: 14px;
         }
-        .form-group input:focus { border-color: #007bff; outline: none; box-shadow: 0 0 0 2px rgba(0,123,255,.25); }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #007bff; outline: none; box-shadow: 0 0 0 2px rgba(0,123,255,.25);
+        }
+        .form-group .help-text { font-size: 12px; color: #888; margin-top: 3px; }
         .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+
+        /* ── Confirmation modale de suppression ──────────────────────────── */
+        .confirm-delete-msg {
+            background: #fff3cd; border: 1px solid #ffc107; color: #856404;
+            border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 14px;
+            line-height: 1.5;
+        }
+        .confirm-delete-msg strong { color: #6c4000; }
 
         /* ── Toast de notification ───────────────────────────────────────── */
         #toast {
@@ -220,6 +233,9 @@
                     <span class="live-badge" id="users-live-badge" aria-label="Mise à jour automatique active">&#9679; LIVE</span>
                 </h2>
                 <div class="toolbar">
+                    <button class="btn btn-success btn-sm" id="btn-create-user" aria-label="Créer un nouvel utilisateur">
+                        &#10010; Nouvel utilisateur
+                    </button>
                     <input
                         type="search"
                         id="search-users"
@@ -308,6 +324,59 @@
 
     </main>
 
+    <!-- ── Modale : Créer un utilisateur ──────────────────────────────────── -->
+    <div id="modal-create-user" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modal-create-title">
+        <div class="modal-box">
+            <h3 id="modal-create-title">&#10010; Créer un nouvel utilisateur</h3>
+            <form id="form-create-user" novalidate>
+                <div class="form-group">
+                    <label for="f-create-username">Nom d'utilisateur <abbr title="obligatoire">*</abbr></label>
+                    <input type="text" id="f-create-username" required autocomplete="off" placeholder="PokemonMaster">
+                </div>
+                <div class="form-group">
+                    <label for="f-create-email">Email <abbr title="obligatoire">*</abbr></label>
+                    <input type="email" id="f-create-email" required autocomplete="off" placeholder="user@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="f-create-password">Mot de passe <abbr title="obligatoire">*</abbr></label>
+                    <input type="password" id="f-create-password" required minlength="6" placeholder="6 caractères minimum">
+                    <span class="help-text">Min. 6 caractères</span>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" id="btn-cancel-create">Annuler</button>
+                    <button type="submit" class="btn btn-success" id="btn-save-create">Créer l'utilisateur</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Modale : Modifier le profil d'un utilisateur ──────────────────── -->
+    <div id="modal-edit-user" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modal-edit-title">
+        <div class="modal-box">
+            <h3 id="modal-edit-title">&#9998; Modifier le profil de <span id="modal-edit-username"></span></h3>
+            <form id="form-edit-user" novalidate>
+                <input type="hidden" id="f-edit-user-id">
+                <div class="form-group">
+                    <label for="f-edit-username">Nom d'utilisateur</label>
+                    <input type="text" id="f-edit-username" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="f-edit-email">Email</label>
+                    <input type="email" id="f-edit-email" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="f-edit-password">Nouveau mot de passe</label>
+                    <input type="password" id="f-edit-password" minlength="6" placeholder="Laisser vide pour ne pas changer">
+                    <span class="help-text">Laisser vide pour conserver le mot de passe actuel</span>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" id="btn-cancel-edit">Annuler</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-edit">Sauvegarder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- ── Modale : Modifier les statistiques ────────────────────────────── -->
     <div id="modal-stats" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modal-stats-title">
         <div class="modal-box">
@@ -331,6 +400,22 @@
                     <button type="submit" class="btn btn-primary" id="btn-save-stats">Sauvegarder</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ── Modale : Confirmer la suppression d'un utilisateur ────────────── -->
+    <div id="modal-delete-user" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
+        <div class="modal-box">
+            <h3 id="modal-delete-title">&#128465; Supprimer l'utilisateur</h3>
+            <div class="confirm-delete-msg">
+                <p>Êtes-vous sûr de vouloir supprimer l'utilisateur <strong id="modal-delete-username"></strong> ?</p>
+                <p>Cette action est <strong>irréversible</strong> et supprimera également tout son inventaire Pokémon.</p>
+            </div>
+            <input type="hidden" id="f-delete-user-id">
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" id="btn-cancel-delete">Annuler</button>
+                <button type="button" class="btn btn-danger" id="btn-confirm-delete">Supprimer définitivement</button>
+            </div>
         </div>
     </div>
 
@@ -456,6 +541,14 @@
                     <td class="date col-lastsync">${fmtDate(u.last_sync)}</td>
                     <td class="date col-created">${fmtDate(u.created_at)}</td>
                     <td class="actions">
+                        <button class="btn btn-warning btn-sm"
+                            data-action="edit-user"
+                            data-id="${esc(u.id)}"
+                            data-username="${esc(u.username)}"
+                            data-email="${esc(u.email)}"
+                            aria-label="Modifier le profil de ${esc(u.username)}">
+                            &#9998; Profil
+                        </button>
                         <button class="btn btn-primary btn-sm"
                             data-action="edit-stats"
                             data-id="${esc(u.id)}"
@@ -464,7 +557,7 @@
                             data-lifetime="${u.lifetime_earnings ?? 0}"
                             data-clicks="${u.total_clicks ?? 0}"
                             aria-label="Modifier les stats de ${esc(u.username)}">
-                            &#9998; Stats
+                            &#128200; Stats
                         </button>
                         <button class="btn btn-secondary btn-sm"
                             data-action="view-inventory"
@@ -472,6 +565,13 @@
                             data-username="${esc(u.username)}"
                             aria-label="Voir l'inventaire de ${esc(u.username)}">
                             &#128230; Inventaire
+                        </button>
+                        <button class="btn btn-danger btn-sm"
+                            data-action="delete-user"
+                            data-id="${esc(u.id)}"
+                            data-username="${esc(u.username)}"
+                            aria-label="Supprimer ${esc(u.username)}">
+                            &#128465;
                         </button>
                     </td>
                 </tr>
@@ -618,6 +718,154 @@
         }
         function hideInvError() { $('inv-error').style.display = 'none'; }
 
+        /* ═══════════════════════════════════════════════════════════════════
+         *  CRUD Utilisateurs — Modales
+         * ═══════════════════════════════════════════════════════════════════ */
+
+        /* ── Modale : Créer un utilisateur ───────────────────────────────── */
+        function openCreateModal() {
+            $('f-create-username').value = '';
+            $('f-create-email').value    = '';
+            $('f-create-password').value = '';
+            $('modal-create-user').hidden = false;
+            $('f-create-username').focus();
+        }
+        function closeCreateModal() { $('modal-create-user').hidden = true; }
+
+        $('form-create-user').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = $('btn-save-create');
+            btn.disabled    = true;
+            btn.textContent = 'Création…';
+
+            const payload = {
+                username: $('f-create-username').value.trim(),
+                email:    $('f-create-email').value.trim(),
+                password: $('f-create-password').value,
+            };
+
+            try {
+                const res  = await fetch('/admin/api/users/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (!res.ok || data.error) {
+                    showToast(data.error ?? 'Erreur lors de la création', 'error');
+                } else {
+                    closeCreateModal();
+                    await refreshUsers();
+                    showToast('Utilisateur créé avec succès ✓');
+                }
+            } catch (err) {
+                showToast('Erreur réseau : ' + err.message, 'error');
+            } finally {
+                btn.disabled    = false;
+                btn.textContent = 'Créer l\'utilisateur';
+            }
+        });
+
+        /* ── Modale : Modifier le profil ─────────────────────────────────── */
+        function openEditModal(id, username, email) {
+            $('f-edit-user-id').value         = id;
+            $('modal-edit-username').textContent = username;
+            $('f-edit-username').value        = username;
+            $('f-edit-email').value           = email;
+            $('f-edit-password').value        = '';
+            $('modal-edit-user').hidden       = false;
+            $('f-edit-username').focus();
+        }
+        function closeEditModal() { $('modal-edit-user').hidden = true; }
+
+        $('form-edit-user').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const userId = $('f-edit-user-id').value;
+            const btn    = $('btn-save-edit');
+            btn.disabled    = true;
+            btn.textContent = 'Sauvegarde…';
+
+            const payload = {};
+            const username = $('f-edit-username').value.trim();
+            const email    = $('f-edit-email').value.trim();
+            const password = $('f-edit-password').value;
+
+            if (username) payload.username = username;
+            if (email)    payload.email    = email;
+            if (password) payload.password = password;
+
+            if (Object.keys(payload).length === 0) {
+                showToast('Aucune modification détectée', 'error');
+                btn.disabled    = false;
+                btn.textContent = 'Sauvegarder';
+                return;
+            }
+
+            try {
+                const res  = await fetch(`/admin/api/users/${userId}/profile`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (!res.ok || data.error) {
+                    showToast(data.error ?? 'Erreur lors de la mise à jour', 'error');
+                } else {
+                    closeEditModal();
+                    await refreshUsers();
+                    showToast('Profil mis à jour ✓');
+                }
+            } catch (err) {
+                showToast('Erreur réseau : ' + err.message, 'error');
+            } finally {
+                btn.disabled    = false;
+                btn.textContent = 'Sauvegarder';
+            }
+        });
+
+        /* ── Modale : Supprimer un utilisateur ───────────────────────────── */
+        function openDeleteModal(id, username) {
+            $('f-delete-user-id').value = id;
+            $('modal-delete-username').textContent = username;
+            $('modal-delete-user').hidden = false;
+            $('btn-cancel-delete').focus();
+        }
+        function closeDeleteModal() { $('modal-delete-user').hidden = true; }
+
+        $('btn-confirm-delete').addEventListener('click', async function () {
+            const userId = $('f-delete-user-id').value;
+            const btn    = $('btn-confirm-delete');
+            btn.disabled    = true;
+            btn.textContent = 'Suppression…';
+
+            try {
+                const res  = await fetch(`/admin/api/users/${userId}/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                });
+                const data = await res.json();
+                if (!res.ok || data.error) {
+                    showToast(data.error ?? 'Erreur lors de la suppression', 'error');
+                } else {
+                    closeDeleteModal();
+                    // Si on avait l'inventaire de cet utilisateur ouvert, on le ferme
+                    if (String(currentUserId) === String(userId)) {
+                        closeInventory();
+                    }
+                    await refreshUsers();
+                    showToast('Utilisateur supprimé ✓');
+                }
+            } catch (err) {
+                showToast('Erreur réseau : ' + err.message, 'error');
+            } finally {
+                btn.disabled    = false;
+                btn.textContent = 'Supprimer définitivement';
+            }
+        });
+
         /* ── Modale Stats ────────────────────────────────────────────────── */
         function openStatsModal(id, username, pokedollars, lifetime, clicks) {
             $('f-user-id').value               = id;
@@ -742,16 +990,25 @@
         $('users-tbody').addEventListener('click', function (e) {
             const btn = e.target.closest('[data-action]');
             if (!btn) return;
-            if (btn.dataset.action === 'edit-stats') {
-                openStatsModal(
-                    btn.dataset.id,
-                    btn.dataset.username,
-                    parseInt(btn.dataset.pokedollars) || 0,
-                    parseInt(btn.dataset.lifetime)    || 0,
-                    parseInt(btn.dataset.clicks)      || 0
-                );
-            } else if (btn.dataset.action === 'view-inventory') {
-                loadInventory(btn.dataset.id, btn.dataset.username);
+            switch (btn.dataset.action) {
+                case 'edit-user':
+                    openEditModal(btn.dataset.id, btn.dataset.username, btn.dataset.email);
+                    break;
+                case 'edit-stats':
+                    openStatsModal(
+                        btn.dataset.id,
+                        btn.dataset.username,
+                        parseInt(btn.dataset.pokedollars) || 0,
+                        parseInt(btn.dataset.lifetime)    || 0,
+                        parseInt(btn.dataset.clicks)      || 0
+                    );
+                    break;
+                case 'view-inventory':
+                    loadInventory(btn.dataset.id, btn.dataset.username);
+                    break;
+                case 'delete-user':
+                    openDeleteModal(btn.dataset.id, btn.dataset.username);
+                    break;
             }
         });
 
@@ -775,26 +1032,32 @@
         });
 
         /* ── Autres handlers ─────────────────────────────────────────────── */
+        $('btn-create-user').addEventListener('click', openCreateModal);
         $('btn-refresh-users').addEventListener('click', refreshUsers);
         $('btn-close-inv').addEventListener('click', closeInventory);
+        $('btn-cancel-create').addEventListener('click', closeCreateModal);
+        $('btn-cancel-edit').addEventListener('click', closeEditModal);
+        $('btn-cancel-delete').addEventListener('click', closeDeleteModal);
         $('btn-cancel-stats').addEventListener('click', closeStatsModal);
         $('btn-cancel-inv').addEventListener('click', closeInvModal);
         $('search-users').addEventListener('input', renderUsers);
         $('search-inv').addEventListener('input', renderInventory);
 
         // Fermer les modales en cliquant sur l'arrière-plan
-        $('modal-stats').addEventListener('click', function (e) {
-            if (e.target === this) closeStatsModal();
-        });
-        $('modal-inv').addEventListener('click', function (e) {
-            if (e.target === this) closeInvModal();
+        ['modal-create-user', 'modal-edit-user', 'modal-delete-user', 'modal-stats', 'modal-inv'].forEach(id => {
+            $(id).addEventListener('click', function (e) {
+                if (e.target === this) this.hidden = true;
+            });
         });
 
         // Fermer les modales avec la touche Échap
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
-                if (!$('modal-stats').hidden) closeStatsModal();
-                if (!$('modal-inv').hidden)   closeInvModal();
+                if (!$('modal-create-user').hidden) closeCreateModal();
+                if (!$('modal-edit-user').hidden)   closeEditModal();
+                if (!$('modal-delete-user').hidden) closeDeleteModal();
+                if (!$('modal-stats').hidden)       closeStatsModal();
+                if (!$('modal-inv').hidden)          closeInvModal();
             }
         });
 
