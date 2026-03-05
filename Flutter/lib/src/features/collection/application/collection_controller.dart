@@ -5,6 +5,7 @@ import '../domain/collection_state.dart';
 import '../domain/user_pokemon.dart';
 import 'capture_service.dart';
 import 'package:flutter/foundation.dart';
+import '../../sync/data/cloud_save_repository.dart';
 
 part 'collection_controller.g.dart';
 
@@ -38,6 +39,10 @@ class CollectionController extends _$CollectionController {
         ownedPokemon: [...state.ownedPokemon, newPokemon],
         lastCaptureResult: result,
       );
+
+      // Immediately persist to server so capture is not lost if the app
+      // closes before the next 60-second periodic sync.
+      ref.read(cloudSaveRepositoryProvider).registerCapture(speciesId);
     } else {
       state = state.copyWith(lastCaptureResult: result);
     }

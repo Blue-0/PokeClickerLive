@@ -75,6 +75,42 @@ class SyncController extends Controller
     }
 
     /**
+     * POST /api/user/capture
+     * Register a single wild-capture immediately so it is persisted even if
+     * the player closes the app before the next periodic sync.
+     * Body: { "pokemon_id": int }
+     */
+    public function capture(): void
+    {
+        $payload = JWT::validateFromHeader();
+        if (!$payload) {
+            $this->error('Unauthorized', 401);
+            return;
+        }
+
+        $userId = $payload['user_id'];
+        $input  = $this->getJsonInput();
+
+        if (!$input || !isset($input['pokemon_id'])) {
+            $this->error('pokemon_id is required', 400);
+            return;
+        }
+
+        $pokemonId = (int) $input['pokemon_id'];
+        if ($pokemonId <= 0) {
+            $this->error('Invalid pokemon_id', 400);
+            return;
+        }
+
+        $entry = UserPokemon::ensureExists($userId, $pokemonId);
+
+        $this->success([
+            'pokemon_id' => $pokemonId,
+            'entry'      => $entry,
+        ]);
+    }
+
+    /**
      * GET /api/user/load
      * Load cloud save data without modifying server state (read-only restore)
      */

@@ -139,8 +139,18 @@ class SyncController extends _$SyncController {
   }
 
   /// Applies cloud save data to all game controllers.
-  /// Restoration order: prestige → clicker → shop → world → collection.
+  /// Restoration order: collection → prestige → clicker → shop → world.
   void _restoreFromCloudData(Map<String, dynamic> cloudData) {
+    // 1. Pokemon collection (read from DB rows - independent of game_state).
+    //    MUST happen before the gs==null guard: a user with no game_state yet
+    //    (e.g. fresh account or first sync) still has pokemon rows in the DB.
+    final pokemonList = cloudData['pokemon'];
+    if (pokemonList is List && pokemonList.isNotEmpty) {
+      ref
+          .read(collectionControllerProvider.notifier)
+          .restoreFromCloud(pokemonList);
+    }
+
     final gameState = cloudData['game_state'];
     final Map<String, dynamic>? gs = gameState is Map
         ? Map<String, dynamic>.from(gameState)
@@ -148,7 +158,7 @@ class SyncController extends _$SyncController {
 
     if (gs == null) return;
 
-    // 1. Prestige first (its bonus affects other calculations)
+    // 2. Prestige first (its bonus affects other calculations)
     final prestigeData = gs['prestige'];
     if (prestigeData is Map) {
       ref
@@ -156,7 +166,7 @@ class SyncController extends _$SyncController {
           .restoreFromCloud(Map<String, dynamic>.from(prestigeData));
     }
 
-    // 2. Clicker (currency, level, clickPower, dps, critChance)
+    // 3. Clicker (currency, level, clickPower, dps, critChance)
     final clickerData = gs['clicker'];
     if (clickerData is Map) {
       final clickerMap = Map<String, dynamic>.from(clickerData);
@@ -170,7 +180,7 @@ class SyncController extends _$SyncController {
       ref.read(clickerControllerProvider.notifier).restoreFromCloud(clickerMap);
     }
 
-    // 3. Shop upgrade levels (display only; clicker stats already restored above)
+    // 4. Shop upgrade levels (display only; clicker stats already restored above)
     final shopData = gs['shop'];
     if (shopData is Map) {
       ref
@@ -178,20 +188,12 @@ class SyncController extends _$SyncController {
           .restoreFromCloud(Map<String, dynamic>.from(shopData));
     }
 
-    // 4. Zone kill counts and current zone
+    // 5. Zone kill counts and current zone
     final worldData = gs['world'];
     if (worldData is Map) {
       ref
           .read(zoneControllerProvider.notifier)
           .restoreFromCloud(Map<String, dynamic>.from(worldData));
-    }
-
-    // 5. Pokemon collection (from server DB rows)
-    final pokemonList = cloudData['pokemon'];
-    if (pokemonList is List && pokemonList.isNotEmpty) {
-      ref
-          .read(collectionControllerProvider.notifier)
-          .restoreFromCloud(pokemonList);
     }
   }
 
