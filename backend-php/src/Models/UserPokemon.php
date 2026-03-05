@@ -33,23 +33,30 @@ class UserPokemon extends Model
     }
 
     /**
-     * Add a Pokémon to user's inventory
+     * Add or increment a Pokémon in user's inventory.
+     * Uses the actual DB schema: (user_id, pokemon_id, quantity, date_acquired).
+     * If the user already owns the Pokémon, the quantity is incremented; otherwise
+     * a new row is created with quantity = 1.
      */
-    public static function addPokemon(int|string $userId, int $pokemonId, ?float $lat = null, ?float $lng = null): ?array
+    public static function addPokemon(int|string $userId, int $pokemonId): ?array
     {
-        $data = [
-            'user_id' => $userId,
-            'pokemon_id' => $pokemonId,
-            'acquired_at' => date('c'),
-            'level' => 1,
-            'experience' => 0
-        ];
+        $existing = self::findEntry($userId, $pokemonId);
 
-        // Add GPS if provided
-        if ($lat !== null && $lng !== null) {
-            $data['latitude'] = $lat;
-            $data['longitude'] = $lng;
+        if ($existing) {
+            // Increment quantity
+            return self::updateComposite(
+                ['user_id' => $userId, 'pokemon_id' => $pokemonId],
+                ['quantity' => ($existing['quantity'] ?? 0) + 1],
+                true
+            );
         }
+
+        $data = [
+            'user_id'       => $userId,
+            'pokemon_id'    => $pokemonId,
+            'quantity'      => 1,
+            'date_acquired' => date('c'),
+        ];
 
         return self::create($data, true);
     }
@@ -100,12 +107,38 @@ class UserPokemon extends Model
     }
 
     /**
-     * Count total Pokémon owned by a user
+     * Count total Pokémon types owned by a user (lightweight – only fetches pokemon_id)
      */
     public static function countByUser(int|string $userId): int
     {
-        $results = self::getByUserId($userId);
-        return count($results);
+        $instance = new static();
+        $result = $instance->db->from(
+            static::$table,
+            'pokemon_id',
+            ['user_id' => 'eq.' . $userId]
+        );
+        return count($result['data'] ?? []);
+    }
+
+    /**
+     * Get Pokémon owned by a user – paginated.
+     *
+     * @param int|string $userId
+     * @param int        $limit  Rows per page (max 100)
+     * @param int        $offset Row offset
+     */
+    public static function getByUserIdPaginated(int|string $userId, int $limit = 20, int $offset = 0): array
+    {
+        $limit = min(100, max(1, $limit));
+        $instance = new static();
+        $result = $instance->db->from(
+            static::$table,
+            '*',
+            ['user_id' => 'eq.' . $userId],
+            $limit,
+            $offset
+        );
+        return $result['data'] ?? [];
     }
 
     /**

@@ -26,4 +26,15 @@ class CollectionRepository {
   List<UserPokemon> getAllPokemon() {
     return _box.values.toList();
   }
+
+  /// Returns true if the box already contains an entry for [pokemonId].
+  bool hasPokemonId(int pokemonId) {
+    return _box.values.any((p) => p.pokemonId == pokemonId);
+  }
+
+  /// Remove all Pokémon from the local Hive box.
+  /// Called before restoring from the cloud to avoid stale/duplicate entries.
+  Future<void> clearAll() async {
+    await _box.clear();
+  }
 }

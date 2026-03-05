@@ -6,13 +6,27 @@ import 'package:pokeclickerlive/src/features/collection/application/team_control
 import 'package:pokeclickerlive/src/features/collection/domain/user_pokemon.dart';
 import 'package:pokeclickerlive/src/features/pokemon/application/pokemon_provider.dart';
 
-class TeamScreen extends ConsumerWidget {
+class TeamScreen extends ConsumerStatefulWidget {
   const TeamScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TeamScreen> createState() => _TeamScreenState();
+}
+
+class _TeamScreenState extends ConsumerState<TeamScreen> {
+  /// Number of collection items to display. Grows by [_pageSize] each time
+  /// the user taps "Load more".
+  static const int _pageSize = 20;
+  int _visibleCount = _pageSize;
+
+  @override
+  Widget build(BuildContext context) {
     final teamState = ref.watch(teamControllerProvider);
     final collectionState = ref.watch(collectionControllerProvider);
+
+    final allPokemon = collectionState.ownedPokemon;
+    final visiblePokemon = allPokemon.take(_visibleCount).toList();
+    final hasMore = allPokemon.length > _visibleCount;
 
     return Scaffold(
       appBar: AppBar(
@@ -22,7 +36,7 @@ class TeamScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          // Active Team (6 Slots)
+          // ── Active Team (6 Slots) ──────────────────────────────────────
           Container(
             padding: const EdgeInsets.all(16),
             color: Colors.grey.shade100,
@@ -48,7 +62,6 @@ class TeamScreen extends ConsumerWidget {
                     final pokemonId = index < teamState.activePokemonIds.length
                         ? teamState.activePokemonIds[index]
                         : null;
-
                     return _TeamSlot(pokemonId: pokemonId, index: index);
                   },
                 ),
@@ -58,40 +71,93 @@ class TeamScreen extends ConsumerWidget {
 
           const Divider(height: 1),
 
-          // Collection (Box)
+          // ── Collection (PC) ───────────────────────────────────────────
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: Text(
-                    'Collection (PC)',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Collection (PC)',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${allPokemon.length} Pokémon',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Expanded(
-                  child: GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: [
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 4,
                           crossAxisSpacing: 8,
                           mainAxisSpacing: 8,
                           childAspectRatio: 1,
                         ),
-                    itemCount: collectionState.ownedPokemon.length,
-                    itemBuilder: (context, index) {
-                      final userPokemon = collectionState.ownedPokemon[index];
-                      final isActive = teamState.activePokemonIds.contains(
-                        userPokemon.id,
-                      );
+                        itemCount: visiblePokemon.length,
+                        itemBuilder: (context, index) {
+                          final userPokemon = visiblePokemon[index];
+                          final isActive = teamState.activePokemonIds
+                              .contains(userPokemon.id);
+                          return _CollectionItem(
+                            userPokemon: userPokemon,
+                            isActive: isActive,
+                          );
+                        },
+                      ),
 
-                      return _CollectionItem(
-                        userPokemon: userPokemon,
-                        isActive: isActive,
-                      );
-                    },
+                      // ── Load-more button ──────────────────────────────
+                      if (hasMore)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _visibleCount += _pageSize;
+                                });
+                              },
+                              icon: const Icon(Icons.expand_more),
+                              label: Text(
+                                'Load more'
+                                ' (${allPokemon.length - _visibleCount} remaining)',
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      if (!hasMore && allPokemon.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Center(
+                            child: Text(
+                              'All ${allPokemon.length} Pokémon shown',
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ],
@@ -231,7 +297,7 @@ class _CollectionItem extends ConsumerWidget {
                 bottom: 2,
                 right: 2,
                 child: Icon(Icons.check_circle, size: 16, color: Colors.red),
-              ),
+          ),
           ],
         ),
       ),

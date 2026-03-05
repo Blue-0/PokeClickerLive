@@ -41,10 +41,6 @@ class CollectionController extends _$CollectionController {
     } else {
       state = state.copyWith(lastCaptureResult: result);
     }
-
-    // Reset result after a short delay to allow UI listeners to trigger correctly if the same result happens twice
-    // (Actually Riverpod listeners trigger on state change, so if we want to show it again we might need a reset)
-    // For now, we'll just keep it and the UI will check for changes.
   }
 
   /// Clears the last capture result notification.
@@ -53,9 +49,15 @@ class CollectionController extends _$CollectionController {
   }
 
   /// Restores Pokemon collection from a cloud save snapshot.
-  /// Each entry in [pokemonList] is a DB row with a 'pokemon_id' field.
+  /// Clears the local Hive box first to avoid stale/duplicate entries from
+  /// previous sessions. Each entry in [pokemonList] is a DB row with a
+  /// 'pokemon_id' field.
   Future<void> restoreFromCloud(List<dynamic> pokemonList) async {
     final repo = ref.read(collectionRepositoryProvider);
+
+    // Clear local storage first to prevent duplicates across login sessions
+    await repo.clearAll();
+
     final restoredPokemon = <UserPokemon>[];
 
     for (final entry in pokemonList) {
@@ -64,6 +66,9 @@ class CollectionController extends _$CollectionController {
         pokemonId = ((entry['pokemon_id'] ?? entry['pokemonId']) as num?)?.toInt();
       }
       if (pokemonId == null) continue;
+
+      // Skip if already restored in this batch (dedup within the server list)
+      if (restoredPokemon.any((p) => p.pokemonId == pokemonId)) continue;
 
       final up = UserPokemon(
         id: const Uuid().v4(),

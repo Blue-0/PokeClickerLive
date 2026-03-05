@@ -105,7 +105,7 @@ class PokemonApiController extends Controller
         User::updateBalance($userId, -$price);
 
         // Add Pokémon to inventory
-        $entry = UserPokemon::addPokemon($userId, $pokemonId, $lat, $lng);
+        $entry = UserPokemon::addPokemon($userId, $pokemonId);
 
         // Log transaction
         TransactionLog::logCatch($userId, $pokemonId, $price, $lat, $lng);
@@ -120,8 +120,12 @@ class PokemonApiController extends Controller
 
     /**
      * GET /api/user/{id}/pokemon
-     * Get all Pokémon owned by the authenticated user.
+     * Get Pokémon owned by the authenticated user (paginated).
      * A user can only access their own collection (JWT user_id must match {id}).
+     *
+     * Query params:
+     *   page  (int, default 1)
+     *   limit (int, default 20, max 50)
      */
     public function userPokemon(string $userId = ''): void
     {
@@ -138,14 +142,17 @@ class PokemonApiController extends Controller
         }
 
         // Ownership check: the authenticated user may only read their own collection.
-        // Use loose comparison because the URL parameter is a string and the JWT
-        // user_id may be an integer depending on the DB driver.
         if ((string) $payload['user_id'] !== (string) $userId) {
             $this->error('Forbidden – you can only access your own collection', 403);
             return;
         }
 
-        $entries = UserPokemon::getByUserId($userId);
+        $page  = max(1, (int) ($_GET['page']  ?? 1));
+        $limit = min(50, max(1, (int) ($_GET['limit'] ?? 20)));
+        $offset = ($page - 1) * $limit;
+
+        $total   = UserPokemon::countByUser($userId);
+        $entries = UserPokemon::getByUserIdPaginated($userId, $limit, $offset);
 
         // Enrich with Pokémon data
         $pokemon = [];
@@ -157,9 +164,14 @@ class PokemonApiController extends Controller
         }
 
         $this->success([
-            'count' => count($pokemon),
-            'total_rps' => UserPokemon::calculateTotalRPS($userId),
-            'pokemon' => $pokemon
+            'pokemon'      => $pokemon,
+            'count'        => count($pokemon),
+            'total'        => $total,
+            'page'         => $page,
+            'limit'        => $limit,
+            'total_pages'  => (int) ceil($total / $limit),
+            'has_more'     => ($offset + $limit) < $total,
+            'total_rps'    => UserPokemon::calculateTotalRPS($userId),
         ]);
     }
 }
