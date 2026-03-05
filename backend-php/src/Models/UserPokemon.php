@@ -62,6 +62,37 @@ class UserPokemon extends Model
     }
 
     /**
+     * Synchronise la quantité d'un Pokémon côté serveur lors d'un sync périodique.
+     * - Si l'entrée n'existe pas, elle est créée avec la quantité client.
+     * - Si elle existe, la quantité serveur est mise à jour uniquement si la
+     *   quantité client est supérieure (on ne réduit jamais côté serveur pour
+     *   éviter la perte de données en cas de client partiel).
+     */
+    public static function syncQuantity(int|string $userId, int $pokemonId, int $quantity): ?array
+    {
+        $existing = self::findEntry($userId, $pokemonId);
+
+        if ($existing) {
+            $serverQty = (int) ($existing['quantity'] ?? 1);
+            if ($quantity > $serverQty) {
+                return self::updateComposite(
+                    ['user_id' => $userId, 'pokemon_id' => $pokemonId],
+                    ['quantity' => $quantity],
+                    true
+                );
+            }
+            return $existing;
+        }
+
+        return self::create([
+            'user_id'       => $userId,
+            'pokemon_id'    => $pokemonId,
+            'quantity'      => max(1, $quantity),
+            'date_acquired' => date('c'),
+        ], true);
+    }
+
+    /**
      * Ensure a Pokémon exists in the user's inventory (idempotent).
      * Creates the row with quantity = 1 if it does not exist.
      * Does nothing if it already exists. Used by sync to avoid

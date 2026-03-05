@@ -55,8 +55,9 @@ class CollectionController extends _$CollectionController {
 
   /// Restores Pokemon collection from a cloud save snapshot.
   /// Clears the local Hive box first to avoid stale/duplicate entries from
-  /// previous sessions. Each entry in [pokemonList] is a DB row with a
-  /// 'pokemon_id' field.
+  /// previous sessions. Each entry in [pokemonList] is a DB row with fields
+  /// 'pokemon_id' and 'quantity'. Multiple UserPokemon objects are created
+  /// per row to match the quantity stored server-side.
   Future<void> restoreFromCloud(List<dynamic> pokemonList) async {
     final repo = ref.read(collectionRepositoryProvider);
 
@@ -67,24 +68,26 @@ class CollectionController extends _$CollectionController {
 
     for (final entry in pokemonList) {
       int? pokemonId;
+      int quantity = 1;
       if (entry is Map) {
         pokemonId = ((entry['pokemon_id'] ?? entry['pokemonId']) as num?)?.toInt();
+        quantity = ((entry['quantity'] as num?)?.toInt() ?? 1).clamp(1, 999);
       }
       if (pokemonId == null) continue;
 
-      // Skip if already restored in this batch (dedup within the server list)
-      if (restoredPokemon.any((p) => p.pokemonId == pokemonId)) continue;
-
-      final up = UserPokemon(
-        id: const Uuid().v4(),
-        pokemonId: pokemonId,
-        acquiredAt: DateTime.now(),
-      );
-      try {
-        await repo.addPokemon(up);
-        restoredPokemon.add(up);
-      } catch (e) {
-        debugPrint('CollectionController.restoreFromCloud: failed to add pokemon $pokemonId: $e');
+      // Créer autant d'entrées locales que la quantité serveur
+      for (int i = 0; i < quantity; i++) {
+        final up = UserPokemon(
+          id: const Uuid().v4(),
+          pokemonId: pokemonId,
+          acquiredAt: DateTime.now(),
+        );
+        try {
+          await repo.addPokemon(up);
+          restoredPokemon.add(up);
+        } catch (e) {
+          debugPrint('CollectionController.restoreFromCloud: failed to add pokemon $pokemonId: $e');
+        }
       }
     }
 

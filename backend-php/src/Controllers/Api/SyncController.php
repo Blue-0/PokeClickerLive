@@ -103,7 +103,17 @@ class SyncController extends Controller
             return;
         }
 
-        $entry = UserPokemon::ensureExists($userId, $pokemonId);
+        // Ensure ref_pokemon exists (FK requirement)
+        if (!Pokemon::ensureInDb($pokemonId)) {
+            $this->error('Unknown pokemon_id', 404);
+            return;
+        }
+
+        // addPokemon incrémente la quantité si l'entrée existe déjà,
+        // ou crée une nouvelle ligne avec quantity=1 sinon.
+        $entry = UserPokemon::addPokemon($userId, $pokemonId);
+
+        error_log("CAPTURE: userId=$userId pokemon=$pokemonId entry=" . json_encode($entry));
 
         $this->success([
             'pokemon_id' => $pokemonId,
@@ -215,33 +225,41 @@ class SyncController extends Controller
 
     /**
      * Sync Pokemon collection.
-     * addPokemon() already handles the upsert logic (insert-or-increment),
-     * so we call it directly without a prior findEntry check — saves one
-     * DB roundtrip per Pokémon.
+     * Compte le nombre d'occurrences de chaque espèce dans la collection client
+     * (le Flutter envoie une entrée par exemplaire capturé), puis met à jour la
+     * quantité côté serveur via syncQuantity() qui n'augmente jamais en dessous
+     * de la valeur serveur (protection anti-perte de données).
      */
     private function syncPokemonCollection($userId, array $collection): void
     {
+        // Regrouper par pokemonId pour calculer la quantité réelle côté client
+        $quantities = [];
         foreach ($collection as $pokemon) {
-            // Check for pokemonId first (Flutter model), fallback to id if not present
-            $pId = $pokemon['pokemonId'] ?? $pokemon['id'] ?? null;
+            // Flutter envoie pokemonId ; fallback sur id (champ UUID ignoré ici)
+            $pId = $pokemon['pokemonId'] ?? null;
 
-            if (!$pId) {
-                error_log("SYNC: Skipping pokemon with no ID: " . json_encode($pokemon));
+            if (!$pId || !is_numeric($pId)) {
+                error_log("SYNC: Skipping pokemon with no numeric pokemonId: " . json_encode($pokemon));
                 continue;
             }
 
             $pokemonId = (int) $pId;
+            $quantities[$pokemonId] = ($quantities[$pokemonId] ?? 0) + 1;
+        }
 
+        error_log("SYNC: collection quantities = " . json_encode($quantities));
+
+        foreach ($quantities as $pokemonId => $quantity) {
             // Ensure the ref_pokemon row exists (PokeAPI data → DB) so FK is satisfied
             if (!Pokemon::ensureInDb($pokemonId)) {
                 error_log("SYNC: Could not ensure ref_pokemon for $pokemonId, skipping");
                 continue;
             }
 
-            // ensureExists is idempotent: creates row if missing, no-op if present.
-            // addPokemon would increment quantity on every sync, which is wrong.
-            $result = UserPokemon::ensureExists($userId, $pokemonId);
-            error_log("SYNC: ensureExists pokemon $pokemonId result = " . json_encode($result));
+            // syncQuantity crée l'entrée si absente, ou met à jour la quantité
+            // uniquement si la valeur client est supérieure au serveur.
+            $result = UserPokemon::syncQuantity($userId, $pokemonId, $quantity);
+            error_log("SYNC: syncQuantity pokemon=$pokemonId qty=$quantity result=" . json_encode($result));
         }
     }
 

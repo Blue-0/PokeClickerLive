@@ -143,6 +143,13 @@ class AuthController extends _$AuthController {
   }
 
   Future<void> logout() async {
+    // Sauvegarde finale avant déconnexion pour ne rien perdre depuis le
+    // dernier sync périodique (60 s). On ignore silencieusement les erreurs
+    // réseau : la sauvegarde sera récupérée au prochain sync si nécessaire.
+    try {
+      await ref.read(syncControllerProvider.notifier).sync();
+    } catch (_) {}
+
     // Reset in-memory game controller state BEFORE clearing auth so that
     // keepAlive controllers don't retain the current user's data.
     ref.read(syncControllerProvider.notifier).resetGameControllers();
