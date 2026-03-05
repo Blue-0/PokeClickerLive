@@ -62,8 +62,28 @@ class UserPokemon extends Model
     }
 
     /**
-     * Level up a user's Pokémon
+     * Ensure a Pokémon exists in the user's inventory (idempotent).
+     * Creates the row with quantity = 1 if it does not exist.
+     * Does nothing if it already exists. Used by sync to avoid
+     * incrementing quantity on every periodic sync.
      */
+    public static function ensureExists(int|string $userId, int $pokemonId): ?array
+    {
+        $existing = self::findEntry($userId, $pokemonId);
+        if ($existing) {
+            return $existing; // Already present — no-op
+        }
+
+        $data = [
+            'user_id'       => $userId,
+            'pokemon_id'    => $pokemonId,
+            'quantity'      => 1,
+            'date_acquired' => date('c'),
+        ];
+
+        return self::create($data, true);
+    }
+
     /**
      * Find a user pokemon entry by composite key
      */
@@ -78,6 +98,12 @@ class UserPokemon extends Model
         return $result['data'][0] ?? null;
     }
 
+    /**
+     * @deprecated The user_pokemon table does NOT have 'level' / 'experience'
+     *             columns yet. A SQL migration (ALTER TABLE user_pokemon ADD COLUMN …)
+     *             is required before this method can work. Calling it now will
+     *             silently return null or fail on the UPDATE.
+     */
     public static function addExperience(int|string $userId, int $pokemonId, int $xp): ?array
     {
         $entry = self::findEntry($userId, $pokemonId);

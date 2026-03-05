@@ -177,7 +177,10 @@ class SyncController extends Controller
     }
 
     /**
-     * Sync Pokemon collection
+     * Sync Pokemon collection.
+     * addPokemon() already handles the upsert logic (insert-or-increment),
+     * so we call it directly without a prior findEntry check — saves one
+     * DB roundtrip per Pokémon.
      */
     private function syncPokemonCollection($userId, array $collection): void
     {
@@ -192,14 +195,10 @@ class SyncController extends Controller
 
             $pokemonId = (int) $pId;
 
-            // Check if user already has this Pokemon
-            $existing = UserPokemon::findEntry($userId, $pokemonId);
-
-            if (!$existing) {
-                // Add new Pokemon to collection
-                $result = UserPokemon::addPokemon($userId, $pokemonId);
-                error_log("SYNC: Added pokemon $pokemonId result = " . json_encode($result));
-            }
+            // ensureExists is idempotent: creates row if missing, no-op if present.
+            // addPokemon would increment quantity on every sync, which is wrong.
+            $result = UserPokemon::ensureExists($userId, $pokemonId);
+            error_log("SYNC: ensureExists pokemon $pokemonId result = " . json_encode($result));
         }
     }
 
