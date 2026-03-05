@@ -198,14 +198,6 @@ class SyncController extends _$SyncController {
           .restoreFromCloud(Map<String, dynamic>.from(worldData));
     }
 
-    // 5. Pokemon collection (from server DB rows)
-    final pokemonList = cloudData['pokemon'];
-    if (pokemonList is List && pokemonList.isNotEmpty) {
-      ref
-          .read(collectionControllerProvider.notifier)
-          .restoreFromCloud(pokemonList);
-    }
-
     // 6. User's Team (active Pokemon)
     final teamData = gs['team'];
     if (teamData is List) {
