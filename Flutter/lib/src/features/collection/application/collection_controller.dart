@@ -75,12 +75,21 @@ class CollectionController extends _$CollectionController {
       }
       if (pokemonId == null) continue;
 
+      // Conserver la date originale du serveur (date_acquired) pour que le
+      // prochain sync puisse distinguer ces entrées restaurées (date ancienne)
+      // des nouvelles captures (date > last_sync). Fallback sur DateTime.now()
+      // uniquement si le champ est absent.
+      final rawDate = entry is Map ? entry['date_acquired']?.toString() : null;
+      final originalDate =
+          (rawDate != null ? DateTime.tryParse(rawDate) : null) ??
+          DateTime.now();
+
       // Créer autant d'entrées locales que la quantité serveur
       for (int i = 0; i < quantity; i++) {
         final up = UserPokemon(
           id: const Uuid().v4(),
           pokemonId: pokemonId,
-          acquiredAt: DateTime.now(),
+          acquiredAt: originalDate,
         );
         try {
           await repo.addPokemon(up);
