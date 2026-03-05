@@ -103,17 +103,22 @@ class SyncController extends Controller
             return;
         }
 
-        // Ensure ref_pokemon exists (FK requirement)
-        if (!Pokemon::ensureInDb($pokemonId)) {
-            $this->error('Unknown pokemon_id', 404);
-            return;
-        }
+        // Best-effort: ensure ref_pokemon row exists for FK but don't block on failure.
+        // The row likely already exists from a previous sync. If ensureInDb fails and
+        // the FK constraint is violated, addPokemon will return null (logged below).
+        Pokemon::ensureInDb($pokemonId);
 
         // addPokemon incrémente la quantité si l'entrée existe déjà,
         // ou crée une nouvelle ligne avec quantity=1 sinon.
         $entry = UserPokemon::addPokemon($userId, $pokemonId);
 
         error_log("CAPTURE: userId=$userId pokemon=$pokemonId entry=" . json_encode($entry));
+
+        if ($entry === null) {
+            // Log the failure but return 200 so the Flutter retry logic
+            // does not loop — the periodic sync will recover the miss.
+            error_log("CAPTURE: addPokemon returned null for userId=$userId pokemon=$pokemonId");
+        }
 
         $this->success([
             'pokemon_id' => $pokemonId,
@@ -225,41 +230,77 @@ class SyncController extends Controller
 
     /**
      * Sync Pokemon collection.
-     * Compte le nombre d'occurrences de chaque espèce dans la collection client
-     * (le Flutter envoie une entrée par exemplaire capturé), puis met à jour la
-     * quantité côté serveur via syncQuantity() qui n'augmente jamais en dessous
-     * de la valeur serveur (protection anti-perte de données).
+     *
+     * Algorithme :
+     * 1. Récupérer le last_sync de l'utilisateur (timestamp serveur du dernier sync).
+     * 2. Pour chaque entrée de la collection Flutter, comparer son champ acquiredAt
+     *    avec last_sync :
+     *    - acquiredAt > last_sync  → nouvelle capture depuis le dernier sync
+     *      → appeler addPokemon() pour incrémenter la quantité en DB.
+     *    - acquiredAt <= last_sync → entrée restaurée depuis le cloud ou ancienne
+     *      → appeler syncQuantity() (idempotent, protège contre la perte de données).
+     * 3. Si last_sync est absent (premier sync), tout le monde est traité comme
+     *    restauré (syncQuantity) pour éviter les doublons.
+     *
+     * Cette approche permet au sync de rattraper les captures manquées par
+     * registerCapture (réseau coupé, erreur FK, etc.).
      */
     private function syncPokemonCollection($userId, array $collection): void
     {
-        // Regrouper par pokemonId pour calculer la quantité réelle côté client
-        $quantities = [];
-        foreach ($collection as $pokemon) {
-            // Flutter envoie pokemonId ; fallback sur id (champ UUID ignoré ici)
-            $pId = $pokemon['pokemonId'] ?? null;
+        // Récupérer le last_sync de l'utilisateur pour distinguer nouvelles captures
+        $user = User::find($userId);
+        $lastSyncTs = 0;
+        if ($user && !empty($user['last_sync'])) {
+            $lastSyncTs = strtotime($user['last_sync']) ?: 0;
+        }
 
+        // Regrouper par pokemonId : total et nouvelles captures
+        $totals      = []; // pokemonId => nombre total d'entrées côté client
+        $newCaptures = []; // pokemonId => nouvelles captures depuis last_sync
+
+        foreach ($collection as $pokemon) {
+            $pId = $pokemon['pokemonId'] ?? null;
             if (!$pId || !is_numeric($pId)) {
                 error_log("SYNC: Skipping pokemon with no numeric pokemonId: " . json_encode($pokemon));
                 continue;
             }
 
             $pokemonId = (int) $pId;
-            $quantities[$pokemonId] = ($quantities[$pokemonId] ?? 0) + 1;
+            $totals[$pokemonId] = ($totals[$pokemonId] ?? 0) + 1;
+
+            // Détecter si l'entrée est une nouvelle capture
+            if ($lastSyncTs > 0 && isset($pokemon['acquiredAt'])) {
+                $acquiredTs = strtotime($pokemon['acquiredAt']) ?: 0;
+                if ($acquiredTs > $lastSyncTs) {
+                    $newCaptures[$pokemonId] = ($newCaptures[$pokemonId] ?? 0) + 1;
+                }
+            }
         }
 
-        error_log("SYNC: collection quantities = " . json_encode($quantities));
+        error_log("SYNC: collection totals = " . json_encode($totals));
+        error_log("SYNC: new captures since last_sync = " . json_encode($newCaptures));
 
-        foreach ($quantities as $pokemonId => $quantity) {
-            // Ensure the ref_pokemon row exists (PokeAPI data → DB) so FK is satisfied
+        foreach ($totals as $pokemonId => $totalQty) {
             if (!Pokemon::ensureInDb($pokemonId)) {
                 error_log("SYNC: Could not ensure ref_pokemon for $pokemonId, skipping");
                 continue;
             }
 
-            // syncQuantity crée l'entrée si absente, ou met à jour la quantité
-            // uniquement si la valeur client est supérieure au serveur.
-            $result = UserPokemon::syncQuantity($userId, $pokemonId, $quantity);
-            error_log("SYNC: syncQuantity pokemon=$pokemonId qty=$quantity result=" . json_encode($result));
+            $newQty = $newCaptures[$pokemonId] ?? 0;
+
+            if ($newQty > 0) {
+                // Appliquer les nouvelles captures comme incréments en DB.
+                // Cela rattrape les registerCapture() qui auraient échoué côté réseau.
+                for ($i = 0; $i < $newQty; $i++) {
+                    UserPokemon::addPokemon($userId, $pokemonId);
+                }
+                error_log("SYNC: addPokemon x{$newQty} for pokemon=$pokemonId (new captures)");
+            }
+
+            // Toujours appeler syncQuantity pour s'assurer que la ligne existe
+            // et que la quantité serveur n'est pas inférieure au total client.
+            $result = UserPokemon::syncQuantity($userId, $pokemonId, $totalQty);
+            error_log("SYNC: syncQuantity pokemon=$pokemonId totalQty=$totalQty result=" . json_encode($result));
         }
     }
 
