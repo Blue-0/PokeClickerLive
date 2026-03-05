@@ -33,30 +33,88 @@ class UserPokemon extends Model
     }
 
     /**
-     * Add a Pokémon to user's inventory
+     * Add or increment a Pokémon in user's inventory.
+     * Uses the actual DB schema: (user_id, pokemon_id, quantity, date_acquired).
+     * If the user already owns the Pokémon, the quantity is incremented; otherwise
+     * a new row is created with quantity = 1.
      */
-    public static function addPokemon(int|string $userId, int $pokemonId, ?float $lat = null, ?float $lng = null): ?array
+    public static function addPokemon(int|string $userId, int $pokemonId): ?array
     {
-        $data = [
-            'user_id' => $userId,
-            'pokemon_id' => $pokemonId,
-            'acquired_at' => date('c'),
-            'level' => 1,
-            'experience' => 0
-        ];
+        $existing = self::findEntry($userId, $pokemonId);
 
-        // Add GPS if provided
-        if ($lat !== null && $lng !== null) {
-            $data['latitude'] = $lat;
-            $data['longitude'] = $lng;
+        if ($existing) {
+            // Increment quantity
+            return self::updateComposite(
+                ['user_id' => $userId, 'pokemon_id' => $pokemonId],
+                ['quantity' => ($existing['quantity'] ?? 0) + 1],
+                true
+            );
         }
+
+        $data = [
+            'user_id'       => $userId,
+            'pokemon_id'    => $pokemonId,
+            'quantity'      => 1,
+            'date_acquired' => date('c'),
+        ];
 
         return self::create($data, true);
     }
 
     /**
-     * Level up a user's Pokémon
+     * Synchronise la quantité d'un Pokémon côté serveur lors d'un sync périodique.
+     * - Si l'entrée n'existe pas, elle est créée avec la quantité client.
+     * - Si elle existe, la quantité serveur est mise à jour uniquement si la
+     *   quantité client est supérieure (on ne réduit jamais côté serveur pour
+     *   éviter la perte de données en cas de client partiel).
      */
+    public static function syncQuantity(int|string $userId, int $pokemonId, int $quantity): ?array
+    {
+        $existing = self::findEntry($userId, $pokemonId);
+
+        if ($existing) {
+            $serverQty = (int) ($existing['quantity'] ?? 1);
+            if ($quantity > $serverQty) {
+                return self::updateComposite(
+                    ['user_id' => $userId, 'pokemon_id' => $pokemonId],
+                    ['quantity' => $quantity],
+                    true
+                );
+            }
+            return $existing;
+        }
+
+        return self::create([
+            'user_id'       => $userId,
+            'pokemon_id'    => $pokemonId,
+            'quantity'      => max(1, $quantity),
+            'date_acquired' => date('c'),
+        ], true);
+    }
+
+    /**
+     * Ensure a Pokémon exists in the user's inventory (idempotent).
+     * Creates the row with quantity = 1 if it does not exist.
+     * Does nothing if it already exists. Used by sync to avoid
+     * incrementing quantity on every periodic sync.
+     */
+    public static function ensureExists(int|string $userId, int $pokemonId): ?array
+    {
+        $existing = self::findEntry($userId, $pokemonId);
+        if ($existing) {
+            return $existing; // Already present — no-op
+        }
+
+        $data = [
+            'user_id'       => $userId,
+            'pokemon_id'    => $pokemonId,
+            'quantity'      => 1,
+            'date_acquired' => date('c'),
+        ];
+
+        return self::create($data, true);
+    }
+
     /**
      * Find a user pokemon entry by composite key
      */
@@ -71,6 +129,12 @@ class UserPokemon extends Model
         return $result['data'][0] ?? null;
     }
 
+    /**
+     * @deprecated The user_pokemon table does NOT have 'level' / 'experience'
+     *             columns yet. A SQL migration (ALTER TABLE user_pokemon ADD COLUMN …)
+     *             is required before this method can work. Calling it now will
+     *             silently return null or fail on the UPDATE.
+     */
     public static function addExperience(int|string $userId, int $pokemonId, int $xp): ?array
     {
         $entry = self::findEntry($userId, $pokemonId);
@@ -100,12 +164,38 @@ class UserPokemon extends Model
     }
 
     /**
-     * Count total Pokémon owned by a user
+     * Count total Pokémon types owned by a user (lightweight – only fetches pokemon_id)
      */
     public static function countByUser(int|string $userId): int
     {
-        $results = self::getByUserId($userId);
-        return count($results);
+        $instance = new static();
+        $result = $instance->db->from(
+            static::$table,
+            'pokemon_id',
+            ['user_id' => 'eq.' . $userId]
+        );
+        return count($result['data'] ?? []);
+    }
+
+    /**
+     * Get Pokémon owned by a user – paginated.
+     *
+     * @param int|string $userId
+     * @param int        $limit  Rows per page (max 100)
+     * @param int        $offset Row offset
+     */
+    public static function getByUserIdPaginated(int|string $userId, int $limit = 20, int $offset = 0): array
+    {
+        $limit = min(100, max(1, $limit));
+        $instance = new static();
+        $result = $instance->db->from(
+            static::$table,
+            '*',
+            ['user_id' => 'eq.' . $userId],
+            $limit,
+            $offset
+        );
+        return $result['data'] ?? [];
     }
 
     /**

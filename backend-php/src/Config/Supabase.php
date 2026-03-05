@@ -86,16 +86,26 @@ class Supabase
 
     /**
      * SELECT query - Get data from a table
-     * @param string $table Table name
-     * @param string $select Columns to select (default: *)
-     * @param array $filters Filters in format ['column' => 'eq.value']
+     * @param string   $table   Table name
+     * @param string   $select  Columns to select (default: *)
+     * @param array    $filters Filters in format ['column' => 'eq.value']
+     * @param int|null $limit   Maximum rows (PostgREST limit param)
+     * @param int|null $offset  Row offset for pagination (PostgREST offset param)
      */
-    public function from($table, $select = '*', $filters = [])
+    public function from($table, $select = '*', $filters = [], $limit = null, $offset = null)
     {
         $query = $table . '?select=' . urlencode($select);
 
         foreach ($filters as $column => $value) {
             $query .= '&' . urlencode($column) . '=' . urlencode($value);
+        }
+
+        if ($limit !== null) {
+            $query .= '&limit=' . (int) $limit;
+        }
+
+        if ($offset !== null) {
+            $query .= '&offset=' . (int) $offset;
         }
 
         return $this->request('GET', $query);

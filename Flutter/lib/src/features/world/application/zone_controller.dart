@@ -213,7 +213,9 @@ class ZoneController extends _$ZoneController {
   /// Restores zone progression from a cloud save snapshot.
   /// Called once after login to re-apply server-side kill counts and current zone.
   void restoreFromCloud(Map<String, dynamic> data) {
-    final rawKills = data['killCounts'] as Map?;
+    final rawKills = data['killCounts'] is Map
+        ? data['killCounts'] as Map
+        : null;
     final killCounts = rawKills != null
         ? rawKills.map((k, v) => MapEntry(k.toString(), (v as num).toInt()))
         : <String, int>{};

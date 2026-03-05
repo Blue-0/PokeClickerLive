@@ -12,7 +12,8 @@ class InventoryAdapter extends TypeAdapter<Inventory> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
 
-    final itemMap = fields[0] as Map? ?? {};
+    final f0 = fields[0];
+    final itemMap = f0 is Map ? f0 : {};
     return Inventory(items: Map<String, int>.from(itemMap));
   }
 

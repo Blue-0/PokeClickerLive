@@ -29,9 +29,14 @@ class CloudSaveRepository {
       final response = await dio.get('/api/user/load');
 
       if (response.statusCode == 200) {
-        final responseBody = response.data as Map<String, dynamic>;
-        final innerData = responseBody['data'] as Map<String, dynamic>?;
-        final cloudData = innerData?['cloud_data'] as Map<String, dynamic>?;
+        final responseBody =
+            (response.data is Map ? response.data : {}) as Map<String, dynamic>;
+        final innerData = responseBody['data'] is Map
+            ? responseBody['data'] as Map<String, dynamic>
+            : null;
+        final cloudData = innerData?['cloud_data'] is Map
+            ? innerData!['cloud_data'] as Map<String, dynamic>
+            : null;
         return Right(cloudData ?? {});
       } else {
         return Left('Server error: ${response.statusCode}');
@@ -40,6 +45,19 @@ class CloudSaveRepository {
       return Left(e.message ?? 'Network error');
     } catch (e) {
       return Left(e.toString());
+    }
+  }
+
+  /// Immediately persist a wild capture to the server so the Pokemon is not
+  /// lost if the app closes before the next periodic sync.
+  /// Fire-and-forget: callers do not need to await the result.
+  Future<void> registerCapture(int pokemonId) async {
+    try {
+      final dio = _ref.read(dioProvider);
+      await dio.post('/api/user/capture', data: {'pokemon_id': pokemonId});
+    } catch (e) {
+      // Best-effort: the periodic sync will recover any missed captures.
+      debugPrint('CloudSaveRepository.registerCapture: failed ($e)');
     }
   }
 
@@ -98,8 +116,11 @@ class CloudSaveRepository {
       if (response.statusCode == 200) {
         // Response structure: { "status": "success", "data": { "server_timestamp": ..., "cloud_data": {...} } }
         // Extract inner data so SyncController can access server_timestamp and cloud_data directly.
-        final responseBody = response.data as Map<String, dynamic>;
-        final innerData = responseBody['data'] as Map<String, dynamic>?;
+        final responseBody =
+            (response.data is Map ? response.data : {}) as Map<String, dynamic>;
+        final innerData = responseBody['data'] is Map
+            ? responseBody['data'] as Map<String, dynamic>
+            : null;
         return Right(innerData ?? {});
       } else {
         return Left('Server error: ${response.statusCode}');
