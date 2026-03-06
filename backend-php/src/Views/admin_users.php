@@ -8,14 +8,14 @@
         /* ── Lien d'évitement (RGAA 1.1) ─────────────────────────────────── */
         .skip-link {
             position: absolute; top: -40px; left: 0;
-            background: #007bff; color: #fff; padding: 8px 16px;
+            background: #0056b3; color: #fff; padding: 8px 16px;
             z-index: 1000; border-radius: 0 0 4px 0;
             font-weight: 600; text-decoration: none; transition: top .2s;
         }
         .skip-link:focus { top: 0; }
 
         /* ── Focus visible (RGAA 10.7) ───────────────────────────────────── */
-        :focus-visible { outline: 3px solid #005fcc; outline-offset: 3px; }
+        :focus-visible { outline: 3px solid #0056b3; outline-offset: 3px; }
 
         /* ── Garantir que hidden fonctionne même avec display: flex/grid ── */
         [hidden] { display: none !important; }
@@ -37,7 +37,7 @@
 
         /* ── Breadcrumb ──────────────────────────────────────────────────── */
         .breadcrumb { margin-bottom: 8px; font-size: 14px; }
-        .breadcrumb a { color: #007bff; text-decoration: none; }
+        .breadcrumb a { color: #0056b3; text-decoration: none; }
         .breadcrumb a:hover { text-decoration: underline; }
 
         /* ── Onglets de navigation admin ─────────────────────────────────── */
@@ -48,13 +48,13 @@
         .admin-tabs a {
             padding: 8px 18px; border-radius: 6px 6px 0 0;
             text-decoration: none; font-weight: 500; font-size: 14px;
-            color: #555; background: #f0f0f0;
+            color: #3d3d3d; background: #f0f0f0;
             border: 1px solid #dee2e6; border-bottom: none;
             transition: background .15s;
         }
-        .admin-tabs a:hover { background: #e2e6ea; color: #333; }
+        .admin-tabs a:hover { background: #e2e6ea; color: #111; }
         .admin-tabs a.active {
-            background: #fff; color: #007bff;
+            background: #fff; color: #0056b3;
             border-color: #dee2e6; border-bottom-color: #fff;
             margin-bottom: -2px;
         }
@@ -77,13 +77,13 @@
             padding: 7px 12px; border: 1px solid #ccc; border-radius: 4px;
             font-size: 14px; min-width: 180px; max-width: 280px;
         }
-        .last-update-label { font-size: 12px; color: #888; white-space: nowrap; }
+        .last-update-label { font-size: 12px; color: #595959; white-space: nowrap; }
 
         /* ── Badge LIVE ──────────────────────────────────────────────────── */
         .live-badge {
             display: inline-flex; align-items: center; gap: 3px;
-            font-size: 11px; font-weight: 700; color: #155724;
-            background: #d4edda; border: 1px solid #c3e6cb;
+            font-size: 11px; font-weight: 700; color: #0a3d1a;
+            background: #c3e6cb; border: 1px solid #8fc9a0;
             padding: 2px 8px; border-radius: 10px; vertical-align: middle;
             margin-left: 8px;
         }
@@ -103,12 +103,12 @@
         .btn:hover { opacity: .88; }
         .btn:active { opacity: .72; }
         .btn:disabled { opacity: .5; cursor: not-allowed; }
-        .btn-primary   { background: #007bff; color: #fff; }
-        .btn-success   { background: #28a745; color: #fff; }
-        .btn-secondary { background: #6c757d; color: #fff; }
-        .btn-danger    { background: #dc3545; color: #fff; }
-        .btn-warning   { background: #ffc107; color: #333; }
-        .btn-outline   { background: #fff; color: #333; border: 1px solid #ccc; }
+        .btn-primary   { background: #0056b3; color: #fff; }
+        .btn-success   { background: #1e7e34; color: #fff; }
+        .btn-secondary { background: #5a6268; color: #fff; }
+        .btn-danger    { background: #b02a37; color: #fff; }
+        .btn-warning   { background: #e6a800; color: #1a1a00; }
+        .btn-outline   { background: #fff; color: #1a1a1a; border: 1px solid #999; }
         .btn-sm { padding: 4px 10px; font-size: 12px; border-radius: 3px; }
 
         /* ── Tables ──────────────────────────────────────────────────────── */
@@ -130,14 +130,14 @@
             display: inline-block; padding: 2px 8px;
             border-radius: 10px; font-size: 12px; font-weight: 600;
         }
-        .badge-Legendary { background: #ffd700; color: #5a4000; }
-        .badge-Epic      { background: #b39ddb; color: #311b92; }
-        .badge-Rare      { background: #add8e6; color: #003050; }
-        .badge-Uncommon  { background: #c8e6c9; color: #1b5e20; }
-        .badge-Common    { background: #eee;    color: #333;    }
+        .badge-Legendary { background: #ffd700; color: #3d2900; }
+        .badge-Epic      { background: #b39ddb; color: #1a0073; }
+        .badge-Rare      { background: #add8e6; color: #002240; }
+        .badge-Uncommon  { background: #c8e6c9; color: #0a3d14; }
+        .badge-Common    { background: #ddd;    color: #111;    }
 
         /* ── Compteur de résultats ───────────────────────────────────────── */
-        .result-count { font-size: 13px; color: #666; margin: 8px 0 0; }
+        .result-count { font-size: 13px; color: #595959; margin: 8px 0 0; }
 
         /* ── Ligne de retour ──────────────────────────────────────────────── */
         .back-row { display: flex; align-items: center; gap: 12px; flex: 1 1 auto; }
@@ -169,9 +169,9 @@
             border-radius: 4px; font-size: 14px;
         }
         .form-group input:focus, .form-group select:focus {
-            border-color: #007bff; outline: none; box-shadow: 0 0 0 2px rgba(0,123,255,.25);
+            border-color: #0056b3; outline: none; box-shadow: 0 0 0 2px rgba(0,86,179,.25);
         }
-        .form-group .help-text { font-size: 12px; color: #888; margin-top: 3px; }
+        .form-group .help-text { font-size: 12px; color: #595959; margin-top: 3px; }
         .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
 
         /* ── Confirmation modale de suppression ──────────────────────────── */
@@ -180,7 +180,7 @@
             border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 14px;
             line-height: 1.5;
         }
-        .confirm-delete-msg strong { color: #6c4000; }
+        .confirm-delete-msg strong { color: #4a2800; }
 
         /* ── Toast de notification ───────────────────────────────────────── */
         #toast {
@@ -188,8 +188,8 @@
             padding: 12px 20px; border-radius: 6px; font-size: 14px; font-weight: 500;
             box-shadow: 0 4px 12px rgba(0,0,0,.2); max-width: 340px;
         }
-        #toast.toast-success { background: #28a745; color: #fff; }
-        #toast.toast-error   { background: #dc3545; color: #fff; }
+        #toast.toast-success { background: #1e7e34; color: #fff; }
+        #toast.toast-error   { background: #b02a37; color: #fff; }
 
         /* ── Responsive : tablette (≤768px) ─────────────────────────────── */
         @media (max-width: 768px) {
@@ -268,7 +268,7 @@
                         </tr>
                     </thead>
                     <tbody id="users-tbody">
-                        <tr><td colspan="9" style="text-align:center;color:#888;">Chargement&hellip;</td></tr>
+                        <tr><td colspan="9" style="text-align:center;color:#4a4a4a;">Chargement&hellip;</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -315,7 +315,7 @@
                         </tr>
                     </thead>
                     <tbody id="inv-tbody">
-                        <tr><td colspan="7" style="text-align:center;color:#888;">S&eacute;lectionnez un utilisateur pour voir son inventaire.</td></tr>
+                        <tr><td colspan="7" style="text-align:center;color:#4a4a4a;">S&eacute;lectionnez un utilisateur pour voir son inventaire.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -505,7 +505,7 @@
                 padding: '12px 20px', borderRadius: '6px', fontSize: '14px',
                 fontWeight: '500', boxShadow: '0 4px 12px rgba(0,0,0,.2)', maxWidth: '340px'
             });
-            t.style.background = type === 'success' ? '#28a745' : '#dc3545';
+            t.style.background = type === 'success' ? '#1e7e34' : '#b02a37';
             t.style.color = '#fff';
             t.hidden = false;
             clearTimeout(t._timer);
@@ -525,7 +525,7 @@
             );
 
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#888;">Aucun utilisateur trouvé.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#4a4a4a;">Aucun utilisateur trouvé.</td></tr>';
                 count.textContent = '';
                 return;
             }
@@ -617,7 +617,7 @@
             });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888;">Aucun Pokémon dans l\'inventaire.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#4a4a4a;">Aucun Pokémon dans l\'inventaire.</td></tr>';
                 count.textContent = '';
                 return;
             }
@@ -631,7 +631,7 @@
                     <tr>
                         <td>
                             <strong>${esc(name)}</strong>
-                            <br><small style="color:#888;">#${esc(item.pokemon_id)}</small>
+                            <br><small style="color:#4a4a4a;">#${esc(item.pokemon_id)}</small>
                         </td>
                         <td>
                             ${rarity
@@ -676,7 +676,7 @@
             $('inv-username').textContent = username;
             $('search-inv').value = '';
             allInventory = [];
-            $('inv-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888;">Chargement…</td></tr>';
+            $('inv-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:#4a4a4a;">Chargement…</td></tr>';
             $('inventory-section').style.display = '';
             $('inventory-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
 

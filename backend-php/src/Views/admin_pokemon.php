@@ -10,7 +10,7 @@
             position: absolute;
             top: -40px;
             left: 0;
-            background: #007bff;
+            background: #0056b3;
             color: #fff;
             padding: 8px 16px;
             z-index: 1000;
@@ -23,7 +23,7 @@
 
         /* ── Focus visible (RGAA 10.7) ───────────────────────────────────── */
         :focus-visible {
-            outline: 3px solid #005fcc;
+            outline: 3px solid #0056b3;
             outline-offset: 3px;
         }
 
@@ -40,7 +40,7 @@
 
         /* ── Breadcrumb / retour dashboard ──────────────────────────────── */
         .breadcrumb { margin-bottom: 16px; font-size: 14px; }
-        .breadcrumb a { color: #007bff; text-decoration: none; }
+        .breadcrumb a { color: #0056b3; text-decoration: none; }
         .breadcrumb a:hover { text-decoration: underline; }
 
         /* ── Cards ───────────────────────────────────────────────────────── */
@@ -68,7 +68,7 @@
         input:invalid { border-color: #c0392b; }
         button[type="submit"] {
             padding: 10px 20px;
-            background: #007bff;
+            background: #0056b3;
             color: #fff;
             border: none;
             border-radius: 4px;
@@ -97,7 +97,7 @@
         }
         #result-count {
             font-size: 13px;
-            color: #666;
+            color: #4a4a4a;
         }
 
         /* ── Table ───────────────────────────────────────────────────────── */
@@ -121,11 +121,11 @@
             font-size: 12px;
             font-weight: 600;
         }
-        .badge-Legendary { background: #ffd700; color: #5a4000; }
-        .badge-Epic      { background: #b39ddb; color: #311b92; }
-        .badge-Rare      { background: #add8e6; color: #003050; }
-        .badge-Uncommon  { background: #c8e6c9; color: #1b5e20; }
-        .badge-Common    { background: #eee;    color: #333;    }
+        .badge-Legendary { background: #ffd700; color: #3d2900; }
+        .badge-Epic      { background: #b39ddb; color: #1a0073; }
+        .badge-Rare      { background: #add8e6; color: #002240; }
+        .badge-Uncommon  { background: #c8e6c9; color: #0a3d14; }
+        .badge-Common    { background: #ddd;    color: #111;    }
 
         /* ── Onglets de navigation admin ─────────────────────────────────── */
         .admin-tabs {
@@ -135,13 +135,13 @@
         .admin-tabs a {
             padding: 8px 18px; border-radius: 6px 6px 0 0;
             text-decoration: none; font-weight: 500; font-size: 14px;
-            color: #555; background: #f0f0f0;
+            color: #3d3d3d; background: #f0f0f0;
             border: 1px solid #dee2e6; border-bottom: none;
             transition: background .15s;
         }
-        .admin-tabs a:hover { background: #e2e6ea; color: #333; }
+        .admin-tabs a:hover { background: #e2e6ea; color: #111; }
         .admin-tabs a.active {
-            background: #fff; color: #007bff;
+            background: #fff; color: #0056b3;
             border-color: #dee2e6; border-bottom-color: #fff;
             margin-bottom: -2px;
         }
@@ -189,7 +189,7 @@
             <h2 id="form-heading">Ajouter un nouveau Pokémon</h2>
 
             <form action="/admin/pokemon" method="POST" aria-describedby="form-desc" novalidate>
-                <p id="form-desc" style="font-size:13px;color:#666;margin-bottom:12px;">
+                <p id="form-desc" style="font-size:13px;color:#4a4a4a;margin-bottom:12px;">
                     Les champs marqués d'un <abbr title="obligatoire">*</abbr> sont obligatoires.
                 </p>
 
@@ -235,7 +235,7 @@
                             aria-required="true"
                             aria-describedby="cost-hint"
                         >
-                        <span id="cost-hint" style="font-size:12px;color:#666;margin-top:4px;">
+                        <span id="cost-hint" style="font-size:12px;color:#4a4a4a;margin-top:4px;">
                             Valeur entière positive (minimum 1 Pokédollar)
                         </span>
                     </div>

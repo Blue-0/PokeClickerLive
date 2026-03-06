@@ -10,7 +10,7 @@
             position: absolute;
             top: -40px;
             left: 0;
-            background: #e94560;
+            background: #c1213c;
             color: #fff;
             padding: 8px 16px;
             z-index: 1000;
@@ -39,7 +39,7 @@
         .header {
             background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
             padding: 24px 40px;
-            border-bottom: 3px solid #e94560;
+            border-bottom: 3px solid #c1213c;
             display: flex;
             align-items: center;
             gap: 16px;
@@ -47,7 +47,7 @@
         }
         .header h1 { font-size: 24px; color: #fff; }
         .header .badge {
-            background: #e94560;
+            background: #c1213c;
             color: #fff;
             padding: 4px 12px;
             border-radius: 12px;
@@ -68,16 +68,16 @@
             padding: 16px 20px;
             background: #16213e;
             border-radius: 8px;
-            border-left: 4px solid <?= ($stats['supabase_status'] ?? false) ? '#00c853' : '#e94560' ?>;
+            border-left: 4px solid <?= ($stats['supabase_status'] ?? false) ? '#00b248' : '#c1213c' ?>;
         }
         .status-dot {
             width: 12px; height: 12px;
             border-radius: 50%;
-            background: <?= ($stats['supabase_status'] ?? false) ? '#00c853' : '#e94560' ?>;
-            box-shadow: 0 0 8px <?= ($stats['supabase_status'] ?? false) ? '#00c853' : '#e94560' ?>;
+            background: <?= ($stats['supabase_status'] ?? false) ? '#00b248' : '#c1213c' ?>;
+            box-shadow: 0 0 8px <?= ($stats['supabase_status'] ?? false) ? '#00b248' : '#c1213c' ?>;
             flex-shrink: 0;
         }
-        .status-url { color: #8892b0; margin-left: auto; font-size: 13px; word-break: break-all; }
+        .status-url { color: #b0bcd4; margin-left: auto; font-size: 13px; word-break: break-all; }
 
         /* ── Bouton Rafraîchir (AJAX) ────────────────────────────────────── */
         #refresh-btn {
@@ -109,11 +109,11 @@
             transition: transform 0.2s, box-shadow 0.2s;
         }
         .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-        .stat-card .label { font-size: 13px; color: #8892b0; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .stat-card .value { font-size: 36px; font-weight: 700; color: #e94560; }
+        .stat-card .label { font-size: 13px; color: #b0bcd4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .stat-card .value { font-size: 36px; font-weight: 700; color: #e5596a; }
 
         /* ── Navigation ──────────────────────────────────────────────────── */
-        .nav-section h2 { font-size: 18px; color: #ccd6f6; margin-bottom: 16px; }
+        .nav-section h2 { font-size: 18px; color: #e2e8ff; margin-bottom: 16px; }
         .nav-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -131,22 +131,22 @@
             color: #e0e0e0;
             transition: border-color 0.2s, background 0.2s;
         }
-        .nav-card:hover { border-color: #e94560; background: #1a2744; }
+        .nav-card:hover { border-color: #c1213c; background: #1a2744; }
         .nav-card .icon { font-size: 32px; width: 48px; text-align: center; flex-shrink: 0; }
         .nav-card .info h3 { font-size: 16px; color: #fff; margin-bottom: 4px; }
-        .nav-card .info p { font-size: 13px; color: #8892b0; }
+        .nav-card .info p { font-size: 13px; color: #b0bcd4; }
 
         /* ── API Table ───────────────────────────────────────────────────── */
         .api-section { margin-top: 40px; }
-        .api-section h2 { font-size: 18px; color: #ccd6f6; margin-bottom: 16px; }
+        .api-section h2 { font-size: 18px; color: #e2e8ff; margin-bottom: 16px; }
         .api-table { width: 100%; border-collapse: collapse; background: #16213e; border-radius: 8px; overflow: hidden; }
-        .api-table th { background: #0f3460; padding: 12px 16px; text-align: left; font-size: 13px; color: #8892b0; text-transform: uppercase; letter-spacing: 1px; }
+        .api-table th { background: #0f3460; padding: 12px 16px; text-align: left; font-size: 13px; color: #c8d4ec; text-transform: uppercase; letter-spacing: 1px; }
         .api-table td { padding: 12px 16px; border-top: 1px solid #0f3460; font-size: 14px; }
         .api-table tr:hover td { background: #1a2744; }
         .method { padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; font-family: monospace; }
-        .method-get { background: #1b5e20; color: #69f0ae; }
-        .method-post { background: #e65100; color: #ffab40; }
-        code { background: #0f3460; padding: 2px 8px; border-radius: 4px; font-size: 13px; color: #64ffda; }
+        .method-get { background: #1b5e20; color: #a5d6a7; }
+        .method-post { background: #7a2200; color: #ffcc80; }
+        code { background: #0f3460; padding: 2px 8px; border-radius: 4px; font-size: 13px; color: #80ffea; }
 
         /* ── Responsive : tablette (≤ 768 px) ───────────────────────────── */
         @media (max-width: 768px) {
@@ -319,7 +319,7 @@
             const statusBar  = document.getElementById('status-bar');
 
             function setStatus(connected, message) {
-                const color = connected ? '#00c853' : '#e94560';
+                const color = connected ? '#00b248' : '#c1213c';
                 dot.style.background  = color;
                 dot.style.boxShadow   = `0 0 8px ${color}`;
                 statusBar.style.borderLeftColor = color;
