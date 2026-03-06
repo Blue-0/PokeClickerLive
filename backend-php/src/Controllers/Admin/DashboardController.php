@@ -43,6 +43,9 @@ class DashboardController extends Controller
             $stats['user_pokemon'] = count($result['data']);
         }
 
+        // Generate CSRF token for the view
+        $csrfToken = $this->generateCsrfToken();
+
         require __DIR__ . '/../../Views/admin_dashboard.php';
     }
 }

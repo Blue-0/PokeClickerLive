@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PokeClicker - Dashboard Admin</title>
+    <!-- Jeton CSRF pour les éventuelles requêtes AJAX -->
+    <meta name="csrf-token" content="<?= htmlspecialchars($csrfToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
     <style>
         /* ── Lien d'évitement (RGAA 1.1) ─────────────────────────────────── */
         .skip-link {

@@ -97,6 +97,50 @@ public static function registerWithError(string $username, string $email, string
 }
 ```
 
+### 1.4 Sécurité renforcée (CSRF, Injection SQL, XSS)
+
+> **Critère :** L’espace administrateur du site Web sera accessible par authentification, et l’API par JWT. Gestion des failles CSRF, Injection SQL et XSS.
+
+**Explication :**
+L'application intègre des mécanismes robustes pour contrer les principales failles de sécurité Web.
+
+**1. Protection CSRF (Cross-Site Request Forgery) :**
+Un jeton (token) unique est généré et stocké en session pour chaque administrateur. Il est injecté dans les requêtes (via balise `<meta name="csrf-token">` pour AJAX ou `<input type="hidden">` pour les formulaires) et vérifié côté serveur.
+
+**Exemple concret (`backend-php/src/Controllers/Controller.php`) :**
+```php
+protected function validateCsrfToken(?string $token = null): bool {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_name('admin_session');
+        session_start();
+    }
+    $token = $token ?? $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    return !empty($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+}
+```
+
+**2. Protection contre les Injections SQL (SQLi) :**
+L'utilisation de Supabase (PostgREST) empêche nativement les injections SQL traditionnelles. De plus, un typage fort et une validation stricte des données sont appliqués en PHP avant toute manipulation en base.
+
+**Exemple concret (`backend-php/src/Controllers/Admin/PokemonController.php`) :**
+```php
+// Validation stricte des types et valeurs (protection injection et intégrité)
+$base_cost = max(1, (int)($_POST['base_cost'] ?? 0));
+$allowed_rarities = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
+$rarity = in_array($_POST['rarity'] ?? '', $allowed_rarities) ? $_POST['rarity'] : 'Common';
+```
+
+**3. Protection XSS (Cross-Site Scripting) :**
+Toutes les entrées soumises par les utilisateurs sont systématiquement désinfectées avec `htmlspecialchars()` ou des filtres spécifiques (comme `FILTER_SANITIZE_EMAIL`) avant d'être traitées ou restituées dans les vues.
+
+**Exemple concret (`backend-php/src/Controllers/Admin/UsersController.php`) :**
+```php
+// Nettoyage rigoureux contre les failles XSS
+$input = $this->getJsonInput() ?? [];
+$username = trim(htmlspecialchars($input['username'] ?? '', ENT_QUOTES, 'UTF-8'));
+$email    = filter_var(trim($input['email'] ?? ''), FILTER_SANITIZE_EMAIL);
+```
+
 ---
 
 ## 2. Développer une interface web dynamique en intégrant les règles d’accessibilité (Front)

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin – Gestion Pokémon | Sinnoh Clicker</title>
+    <!-- Jeton CSRF pour les éventuelles requêtes AJAX -->
+    <meta name="csrf-token" content="<?= htmlspecialchars($csrfToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
     <style>
         /* ── Lien d'évitement (RGAA 1.1) ─────────────────────────────────── */
         .skip-link {
@@ -192,6 +194,8 @@
                 <p id="form-desc" style="font-size:13px;color:#4a4a4a;margin-bottom:12px;">
                     Les champs marqués d'un <abbr title="obligatoire">*</abbr> sont obligatoires.
                 </p>
+
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
 
                 <div class="form-row">
                     <div class="form-group">

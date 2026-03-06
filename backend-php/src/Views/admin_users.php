@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin – Gestion Utilisateurs | Sinnoh Clicker</title>
+    <meta name="csrf-token" content="<?= htmlspecialchars($csrfToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
     <style>
         /* ── Lien d'évitement (RGAA 1.1) ─────────────────────────────────── */
         .skip-link {
@@ -744,10 +745,12 @@
                 password: $('f-create-password').value,
             };
 
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
             try {
                 const res  = await fetch('/admin/api/users/create', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                     credentials: 'include',
                     body: JSON.stringify(payload),
                 });
@@ -802,10 +805,12 @@
                 return;
             }
 
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
             try {
                 const res  = await fetch(`/admin/api/users/${userId}/profile`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                     credentials: 'include',
                     body: JSON.stringify(payload),
                 });
@@ -840,10 +845,12 @@
             btn.disabled    = true;
             btn.textContent = 'Suppression…';
 
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
             try {
                 const res  = await fetch(`/admin/api/users/${userId}/delete`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                     credentials: 'include',
                 });
                 const data = await res.json();
@@ -892,10 +899,12 @@
                 total_clicks:      parseInt($('f-clicks').value)      || 0,
             };
 
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
             try {
                 const res  = await fetch(`/admin/api/users/${userId}/stats`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                     credentials: 'include',
                     body: JSON.stringify(payload),
                 });
@@ -942,10 +951,12 @@
                 action:     'update',
             };
 
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
             try {
                 const res  = await fetch(`/admin/api/users/${currentUserId}/inventory`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                     credentials: 'include',
                     body: JSON.stringify(payload),
                 });
@@ -967,10 +978,12 @@
 
         async function deleteInventoryEntry(pokemonId, pokemonName) {
             if (!confirm(`Supprimer "${pokemonName}" de l'inventaire de ${currentUserName} ?`)) return;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
             try {
                 const res  = await fetch(`/admin/api/users/${currentUserId}/inventory`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                     credentials: 'include',
                     body: JSON.stringify({ pokemon_id: pokemonId, action: 'delete' }),
                 });

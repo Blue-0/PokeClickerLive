@@ -22,6 +22,9 @@ class PokemonController extends Controller
 
         $error = isset($result['error']) ? $result['error'] : null;
 
+        // Generate CSRF token for the view
+        $csrfToken = $this->generateCsrfToken();
+
         require __DIR__ . '/../../Views/admin_pokemon.php';
     }
 
@@ -31,13 +34,23 @@ class PokemonController extends Controller
         $this->requireAdminBasicAuth();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $name = $_POST['name'] ?? '';
-            $base_cost = (int)($_POST['base_cost'] ?? 0);
-            $base_production = (int)($_POST['base_production'] ?? 0);
-            $rarity = $_POST['rarity'] ?? 'Common';
-            $description = $_POST['description'] ?? '';
+            // Verify CSRF Token
+            if (!$this->validateCsrfToken()) {
+                http_response_code(403);
+                die('CSRF token validation failed.');
+            }
 
-            if ($name && $base_cost) {
+            // Nettoyage rigoureux contre les failles XSS et filtres anti-injection
+            $name = trim(htmlspecialchars($_POST['name'] ?? '', ENT_QUOTES, 'UTF-8'));
+            $description = trim(htmlspecialchars($_POST['description'] ?? '', ENT_QUOTES, 'UTF-8'));
+            
+            // Validation stricte des types / valeurs (protection injection, intégrité)
+            $base_cost = max(1, (int)($_POST['base_cost'] ?? 0));
+            $base_production = max(1, (int)($_POST['base_production'] ?? 0));
+            $allowed_rarities = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
+            $rarity = in_array($_POST['rarity'] ?? '', $allowed_rarities) ? $_POST['rarity'] : 'Common';
+
+            if ($name && $base_cost > 0) {
                 $supabase = Supabase::getInstance();
                 $supabase->insert('ref_pokemon', [
                     'name' => $name,

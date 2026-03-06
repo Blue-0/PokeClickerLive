@@ -103,6 +103,40 @@ class Controller
     }
 
     /**
+     * Generate a CSRF token and store it in the session.
+     */
+    protected function generateCsrfToken(): string
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_name('admin_session');
+            session_start();
+        }
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+
+    /**
+     * Validate the given CSRF token against the one stored in session.
+     */
+    protected function validateCsrfToken(?string $token = null): bool
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_name('admin_session');
+            session_start();
+        }
+        
+        $token = $token ?? $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        
+        if (empty($_SESSION['csrf_token']) || empty($token)) {
+            return false;
+        }
+        
+        return hash_equals($_SESSION['csrf_token'], $token);
+    }
+
+    /**
      * Protect JSON API routes that require an admin role.
      *
      * The JWT payload must contain "role": "admin" (set at login time).

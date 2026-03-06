@@ -67,6 +67,9 @@ class UsersController extends Controller
             usort($users, fn($a, $b) => ($a['id'] ?? 0) <=> ($b['id'] ?? 0));
         }
 
+        // Generate CSRF token for the view
+        $csrfToken = $this->generateCsrfToken();
+
         require __DIR__ . '/../../Views/admin_users.php';
     }
 
@@ -148,6 +151,11 @@ class UsersController extends Controller
     public function updateStats(int $userId): void
     {
         $this->requireAdminJson();
+        if (!$this->validateCsrfToken()) {
+            $this->error('CSRF token validation failed.', 403);
+            return;
+        }
+
         header('Content-Type: application/json');
 
         $input   = $this->getJsonInput() ?? [];
@@ -185,6 +193,11 @@ class UsersController extends Controller
     public function updateInventory(int $userId): void
     {
         $this->requireAdminJson();
+        if (!$this->validateCsrfToken()) {
+            $this->error('CSRF token validation failed.', 403);
+            return;
+        }
+
         header('Content-Type: application/json');
 
         $input     = $this->getJsonInput() ?? [];
@@ -244,12 +257,18 @@ class UsersController extends Controller
     public function createUser(): void
     {
         $this->requireAdminJson();
+        if (!$this->validateCsrfToken()) {
+            $this->error('CSRF token validation failed.', 403);
+            return;
+        }
+
         header('Content-Type: application/json');
 
         $input = $this->getJsonInput() ?? [];
-        $username = trim($input['username'] ?? '');
-        $email    = trim($input['email']    ?? '');
-        $password = $input['password']       ?? '';
+        // Nettoyage XSS
+        $username = trim(htmlspecialchars($input['username'] ?? '', ENT_QUOTES, 'UTF-8'));
+        $email    = filter_var(trim($input['email'] ?? ''), FILTER_SANITIZE_EMAIL);
+        $password = $input['password'] ?? '';
 
         // Validation
         $errors = [];
@@ -308,6 +327,11 @@ class UsersController extends Controller
     public function updateUser(int $userId): void
     {
         $this->requireAdminJson();
+        if (!$this->validateCsrfToken()) {
+            $this->error('CSRF token validation failed.', 403);
+            return;
+        }
+
         header('Content-Type: application/json');
 
         $input = $this->getJsonInput() ?? [];
@@ -347,6 +371,11 @@ class UsersController extends Controller
     public function deleteUser(int $userId): void
     {
         $this->requireAdminJson();
+        if (!$this->validateCsrfToken()) {
+            $this->error('CSRF token validation failed.', 403);
+            return;
+        }
+
         header('Content-Type: application/json');
 
         $supabase = Supabase::getInstance();
