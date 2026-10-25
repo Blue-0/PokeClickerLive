@@ -3,6 +3,8 @@ test('3D combat, upgrades, boss unlocks and persistence',async({page})=>{
  test.setTimeout(60000);
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('/');await expect(page.locator('#scene canvas')).toBeVisible();await expect(page.locator('#scene-fallback')).toBeHidden();
+ await expect(page.locator('#scene')).toHaveAttribute('data-model-state','ready');
+ expect(Number(await page.locator('#scene').getAttribute('data-voxel-count'))).toBeGreaterThan(100);
  await expect(page.locator('#boss')).toBeDisabled();
  const attack=page.getByRole('button',{name:/Attaquer/});
  for(let i=0;i<110;i++)await attack.click();
@@ -27,4 +29,10 @@ test('mobile layout, keyboard combat and guide',async({page})=>{
 test('WebGL failure keeps the clicker playable',async({page})=>{
  await page.addInitScript(()=>{const get=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(kind,...args){if(kind.startsWith('webgl'))return null;return get.call(this,kind,...args);};});
  await page.goto('/');await expect(page.locator('#scene-fallback')).toBeVisible();await page.locator('#attack').click();await expect(page.locator('#health-text')).not.toHaveText('28 / 28 PV');
+});
+
+test('pixel assets stay local and sprite failures preserve combat',async({page})=>{
+ await page.route('**/pokemon/*.png',route=>route.abort());
+ await page.goto('/');await expect(page.locator('#scene')).toHaveAttribute('data-model-state','error');
+ await page.locator('#attack').click();await expect(page.locator('#health-text')).not.toHaveText('28 / 28 PV');
 });

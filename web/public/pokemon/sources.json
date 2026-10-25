@@ -1,0 +1,72 @@
+[
+  {
+    "id": 387,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/387.png",
+    "sha256": "b42ab2e44f46f3bbf0934f513129db4e21cd1dfd61a22b4537a52f667e45d1d9"
+  },
+  {
+    "id": 389,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/389.png",
+    "sha256": "1d4e86ccc4c5726635c3b147c2fcfe6c07c122d493a07c270e02e498528b03e0"
+  },
+  {
+    "id": 390,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/390.png",
+    "sha256": "1cb427ff0af7073c9e422983d811e5966b4c0d61ba11822b60555b685cb64cc0"
+  },
+  {
+    "id": 393,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/393.png",
+    "sha256": "adb8ebb111f895a0be76eccfd7ae24b188df3240002e7b0faa226d63fb136896"
+  },
+  {
+    "id": 395,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/395.png",
+    "sha256": "fd8a10fd1b73d06b90f73e6f07d606985c39c42f16f984f82c80f907516923c9"
+  },
+  {
+    "id": 396,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/396.png",
+    "sha256": "d61597060334f9ec3ad448075ecc35623069573d132fc3f5da49df2999ceae26"
+  },
+  {
+    "id": 399,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/399.png",
+    "sha256": "dc3a787ff7c0946ce02065197d9aba51a0d3f2dc227192f084e7ed82a928fdd8"
+  },
+  {
+    "id": 401,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/401.png",
+    "sha256": "44488b671f5a66cba8fd8e6242b19a9bead1be7f486de085a210a7d402b44206"
+  },
+  {
+    "id": 403,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/403.png",
+    "sha256": "5e555089bcb6f787e89f3e11e7571196c72db1e68928d5679bae101e26a6e761"
+  },
+  {
+    "id": 404,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/404.png",
+    "sha256": "3c977b77fd807ef3a0d9cfa14a7790c4f5a7462f936549ad12b6040538a1e76b"
+  },
+  {
+    "id": 406,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/406.png",
+    "sha256": "4bc0bf3a7efaa9afab058d7a18a5bfbe3758ac8a57cb09c39fa39f9dc66c684e"
+  },
+  {
+    "id": 418,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/418.png",
+    "sha256": "a616bdb833111f8e48cc4a9b1616091adddcc55e670dcfb143f9187a9621f449"
+  },
+  {
+    "id": 443,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/443.png",
+    "sha256": "7fd6f72eacc9d49b710d879ce1cba243375283c55bcd9d2332d1c8cc7ce6c921"
+  },
+  {
+    "id": 445,
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/97a7832d307311c0e1c6ea9035308bf80cc94f81/sprites/pokemon/445.png",
+    "sha256": "9d27f8854985481789606da367120fd62949f6637ee283e1d5c7d1e52213c476"
+  }
+]

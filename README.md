@@ -1,6 +1,6 @@
 # PokéClicker Live — navigateur & Three.js
 
-Le client principal est désormais une application JavaScript/Vite avec un monde 3D Three.js. Le jeu se lance dans un navigateur moderne, sans Flutter, compte, clé Supabase ni API. Les modèles 3D sont des créatures stylisées procédurales ; aucune image ou police distante n'est nécessaire.
+Le client principal est désormais une application JavaScript/Vite avec un monde 3D Three.js. Le jeu se lance dans un navigateur moderne, sans Flutter, compte, clé Supabase ni API. Les Pokémon sont des modèles voxel extrudés à partir de leurs sprites pixel art, dans un décor 3D avec éclairage et particules. Les 14 sprites sont embarqués localement ; aucune image ou police distante n’est nécessaire pendant la partie.
 
 ## Démarrage
 
@@ -49,7 +49,9 @@ Le site est servi sur le port 3000. L'ancien service PHP est conservé dans le p
 ## Organisation et migration
 
 - `web/src/game.js` : règles, économie, combat, progression, validation et sérialisation de sauvegarde, indépendants du rendu.
-- `web/src/scene.js` : scène Three.js, modèles procéduraux, éclairage, interactions, animations et particules.
+- `web/src/scene.js` : scène Three.js, éclairage, interactions, animations, particules et post-traitement pixel art (`EffectComposer`, `RenderPixelatedPass`, `OutputPass`).
+- `web/src/pokemon-assets.js` et `pokemon-voxels.js` : catalogue Pokémon, conversion des pixels opaques en cubes via `InstancedMesh`, cache mémoire et libération des ressources GPU.
+- `web/public/pokemon/` : sprites PokéAPI locaux, provenance, empreintes SHA-256 et attribution. Les modèles sont des extrusions stylisées des sprites 2D, pas des modèles 3D officiels. Les sprites servent aussi de portraits dans l’équipe. Un échec de chargement conserve un modèle de remplacement et les commandes de combat.
 - `web/src/main.js` : interface française, boucle temps réel, stockage et commandes accessibles.
 - `web/test` et `web/e2e` : tests moteur et parcours navigateur.
 - `Flutter/` : ancien client conservé pour référence ; n'est plus nécessaire au workflow principal.
