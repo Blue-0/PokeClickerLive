@@ -58,3 +58,11 @@ Le site est servi sur le port 3000. L'ancien service PHP est conservé dans le p
 - `backend-php/` : ancienne API conservée ; connexion et synchronisation cloud ne sont pas migrées vers le nouveau client.
 
 Les anciens fichiers `.env` ne sont pas lus, intégrés au bundle ou copiés dans l'image web. N'utilisez jamais une clé de service Supabase dans un client navigateur.
+
+## Interface Diamant / Perle
+
+L’interface s’inspire des menus Nintendo DS : coque à deux écrans, cadres pixelisés, palette bleu diamant / rose perle, boîte de dialogue de combat et indicateur de PV vert / jaune / rouge. La scène 3D et les règles de progression sont conservées.
+
+Le menu du dresseur permet de passer entre **Sac** (améliorations), **Carte** (zones et position courante), **Équipe** (captures et DPS) et **Badges** (gardiens vaincus et prestige). Le combat reste accessible pendant la navigation. Sur mobile, les deux écrans s’empilent. Les menus sont des boutons accessibles au clavier avec état de sélection et panneaux masqués correspondants.
+
+La police pixel VT323 est distribuée localement depuis Google Fonts, sous licence SIL Open Font License (voir `web/public/fonts/OFL-VT323.txt`). Les cadres, carte et décor de l’interface sont dessinés en CSS ; ils ne nécessitent pas de ressources distantes. Les textes d’aide et confirmations restent disponibles au clavier. Le mode de réduction des animations est respecté.
