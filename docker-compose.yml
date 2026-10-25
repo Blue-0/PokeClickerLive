@@ -1,11 +1,18 @@
 services:
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    ports:
+      - "3000:80"
+    restart: unless-stopped
   php-api:
+    profiles: [legacy-api]
     build:
       context: ./backend-php
       dockerfile: Dockerfile
-    container_name: pokeclicker-api
     ports:
-      - "8080:80"
+      - "8081:80"
     environment:
       - SUPABASE_URL
       - SUPABASE_KEY
@@ -13,4 +20,4 @@ services:
       - JWT_SECRET
       - ADMIN_USER
       - ADMIN_PASSWORD_HASH
-    restart: always
+    restart: unless-stopped
