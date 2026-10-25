@@ -1,0 +1,20 @@
+{
+  "name": "pokeclicker-live",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite web --host 0.0.0.0",
+    "build": "vite build web",
+    "preview": "vite preview web --host 0.0.0.0",
+    "test": "node --test web/test/*.test.js",
+    "test:browser": "playwright test"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "vite": "^6.4.1",
+    "@playwright/test": "^1.56.0"
+  }
+}
